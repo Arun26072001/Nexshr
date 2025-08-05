@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar.css";
 import CircleIcon from '@mui/icons-material/Circle';
-import { getHoliday } from "./ReuseableAPI";
+import { getHoliday, getNextUpcomingHoliday } from "./ReuseableAPI";
 import { EssentialValues } from "../App";
 import LeaveTable from "./LeaveTable";
 import { Skeleton } from "@mui/material";
@@ -27,6 +27,7 @@ function Holiday() {
     const [titles, setTitles] = useState({});
     const [holidayObj, setHolidayObj] = useState({});
     const [holidays, setHolidays] = useState([]);
+    const [upcomingHoliday, setUpcomingHoliday] = useState({});
     const [formattedHolidays, setFormattedHolidays] = useState([]);
     const [allYearHoliday, setAllYearHoliday] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +45,8 @@ function Holiday() {
         if (isEdit && !changeHoliday.isEdit && value) {
             setHolidayObj(value);
             const formatted = value.holidays.map((h) => h.date);
+            const holiday = getNextUpcomingHoliday(value.holidays);
+            setUpcomingHoliday(holiday);
             setHolidays(formatted);
             const titleMap = Object.fromEntries(value.holidays.map((h) => [h.date, h.title]));
             setTitles(titleMap);
@@ -275,13 +278,13 @@ function Holiday() {
     if (isLoading) {
         return <Skeleton sx={{ bgcolor: "grey.500" }} variant="rectangular" width="100%" height="80vh" />;
     }
-
     return (
         isEditable ? renderHolidayForm() :
             whoIs === "emp" ?
                 (formattedHolidays.length > 0 ?
                     <>
                         <p className="text-center mb-2 payslipTitle"><CircleIcon color="success" /> Holiday</p>
+
                         <Calendar
                             localizer={localizer}
                             events={formattedHolidays}

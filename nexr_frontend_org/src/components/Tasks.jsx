@@ -300,6 +300,7 @@ const Tasks = () => {
         }
       })
       const empTasks = res.data?.tasks;
+      console.log("empTaks", empTasks)
       setProjectAllTasks(empTasks)
       setAllTask(empTasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
       setNotCompletedTasks(empTasks.filter((task) => task.status !== "Completed")?.map((task) => ({ label: task.title, value: task._id })))
@@ -330,13 +331,8 @@ const Tasks = () => {
           Authorization: data.token || ""
         }
       })
-      setTaskObj({
-        ...res.data,
-        spend: {
-          ...res?.data?.spend,
-          timeHolder: getTimeFromHour(res?.data?.spend?.timeHolder || 0)
-        }
-      });
+      const task = res.data || {};
+      setTaskObj(task);
       if (storeCommentImgs) {
         setPreviewList(res.data?.comments[0]?.attachments);
       } else {
@@ -390,66 +386,57 @@ const Tasks = () => {
 
   async function editTask(updatedTask, changeComments) {
 
-    let taskToUpdate = { ...updatedTask };
-
-    // // Ensure `spend.timeHolder` is correctly formatted
-    // if (
-    //   typeof updatedTask?.spend?.timeHolder === "string" &&
-    //   updatedTask.spend.timeHolder.split(/[:.]+/).length <= 2
-    // ) {
-    //   taskToUpdate.spend = {
-    //     ...updatedTask.spend,
-    //     timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder) || "00:00:00",
-    //   };
-    // }
-
-    setIsUpdateTime(updatedTask._id);
+    // setIsUpdateTime(updatedTask._id);
+    setIsTaskChanging(true); // show loader
+    setErrorData("");        // reset error
 
     let files = [];
+    let updatedTaskData = { ...updatedTask };
 
-    // set loader true task is updating
-    setIsTaskChanging(true);
     try {
-      // Ensure attachments exist before filtering
-      if (taskToUpdate?.comments?.[0]?.attachments?.length) {
-        files = taskToUpdate.comments[0].attachments.filter((file) => file.type === "image/png");
-      } else {
-        files = taskToUpdate?.attachments?.filter((file) => file.type === "image/png") || [];
-      }
+      // Determine files to upload (only png images)
+      const commentAttachments = updatedTask?.comments?.[0]?.attachments;
+      const taskAttachments = updatedTask?.attachments;
 
-      let updatedTaskData = { ...taskToUpdate };
+      files = commentAttachments?.filter(file => file.type === "image/png")
+        || taskAttachments?.filter(file => file.type === "image/png")
+        || [];
 
+      // Upload files if any
       if (files.length > 0) {
-        // Upload files if any exist
         const responseData = await fileUploadInServer(files);
+        const uploadedFiles = responseData.files.map(file => file.originalFile);
 
-        if (taskToUpdate?.comments?.[0]?.attachments?.length > 0) {
+        if (commentAttachments?.length > 0) {
+          // Update comment attachments
           updatedTaskData = {
-            ...taskToUpdate,
+            ...updatedTaskData,
             comments: [
               {
-                ...taskToUpdate.comments[0],
-                attachments: responseData.files.map((file) => file.originalFile),
-              },
-            ],
+                ...updatedTaskData.comments[0],
+                attachments: uploadedFiles
+              }
+            ]
           };
         } else {
-          const uploadedImgPath = taskToUpdate.attachments?.filter((file) => file.type !== "image/png" && file.type !== "video/mp4") || [];
+          // Retain non-png and non-mp4 files
+          const retainedFiles = taskAttachments?.filter(
+            file => file.type !== "image/png" && file.type !== "video/mp4"
+          ) || [];
 
           updatedTaskData = {
-            ...taskToUpdate,
-            attachments: [...uploadedImgPath, ...responseData.files.map((file) => file.originalFile)],
+            ...updatedTaskData,
+            attachments: [...retainedFiles, ...uploadedFiles]
           };
         }
       }
-      setErrorData("");
-      // Send updated task
+      // Send update request
       const res = await axios.put(
-        `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
+        `${url}/api/task/${data._id}/${updatedTaskData._id}`,
         updatedTaskData,
         {
           params: { changeComments },
-          headers: { Authorization: data?.token || "" },
+          headers: { Authorization: data?.token || "" }
         }
       );
 
@@ -457,17 +444,19 @@ const Tasks = () => {
       setTaskObj({});
       setIsAddTask(false);
       setIsEditTask(false);
-      fetchEmpAssignedTasks()// Refresh tasks
+      fetchEmpAssignedTasks(); // refresh list
     } catch (error) {
       if (error?.message === "Network Error") {
-        navigate("/network-issue")
+        navigate("/network-issue");
+        return;
       }
-      console.error("Error updating task:", error);
-      const errorMessage = error?.response?.data?.error;
+
+      const errorMessage = error?.response?.data?.error || "Task update failed";
+      console.error("Error updating task:", errorMessage);
       setErrorData(errorMessage);
       toast.error(errorMessage);
     } finally {
-      setIsUpdateTime("");
+      // setIsUpdateTime("");
       setIsAddComment(false);
       setIsTaskChanging(false);
     }
@@ -519,7 +508,6 @@ const Tasks = () => {
 
         newTask = {
           ...taskObj,
-          estTime: (new Date(taskObj.to) - new Date(taskObj.from)) / (1000 * 60 * 60),
           attachments: responseData.files.map(file => file.originalFile)
         };
 
@@ -535,14 +523,8 @@ const Tasks = () => {
         setIsLoading(false);
       }
     } else {
-      newTask = {
-        ...taskObj,
-        estTime: (new Date(taskObj.to) - new Date(taskObj.from)) / (1000 * 60 * 60)
-      };
-
-      await createTask(newTask);
+      await createTask(taskObj);
     }
-
     setIsTaskChanging(false);
   }
 
@@ -601,31 +583,63 @@ const Tasks = () => {
     editTask(updatedTask)
   }
 
-  async function updatedTimerInTask(id, timerType) {
-    const taskData = await fetchTaskById(id);
+  // to handle start and stop timer
+  async function updatedTimerInTask(taskData, timerType) {
+    const token = data?.token || "";
+    const taskId = taskData._id
     let updatedTask;
     const currentTime = new Date();
-    if (timerType === "startTime") {
-      updatedTask = {
-        ...taskData,
-        spend: {
-          ...taskData?.spend,
-          startingTime: [...(taskData?.spend?.startingTime || []), currentTime]
-        },
-        status: "In Progress" 
+
+    try {
+      setIsUpdateTime(taskId);// optional: show loader
+
+      // Build the updated task object
+      if (timerType === "startTime") {
+        updatedTask = {
+          ...taskData,
+          spend: {
+            ...taskData?.spend,
+            startingTime: [...(taskData?.spend?.startingTime || []), currentTime]
+          },
+          status: "In Progress"
+        };
+      } else {
+        updatedTask = {
+          ...taskData,
+          spend: {
+            ...taskData?.spend,
+            endingTime: [...(taskData?.spend?.endingTime || []), currentTime]
+          },
+          status: "Pending"
+        };
       }
-    } else {
-      updatedTask = {
-        ...taskData,
-        spend: {
-          ...taskData?.spend,
-          endingTime: [...(taskData?.spend?.endingTime || []), currentTime],
-        },
-        status: "Pending"
-      }
+
+      // Call the update task API
+      const res = await axios.put(
+        `${url}/api/task/timer/${data._id}/${taskId}`,
+        updatedTask,
+        {
+          params: {
+            type: timerType
+          },
+          headers: { Authorization: token }
+        }
+      );
+      console.log("updatedTask", res.data.task)
+      toast.success(res.data.message || "Timer updated successfully");
+      setTaskObj(res.data.task)
+      fetchEmpAssignedTasks();
+      return true; // refresh list after update
+    } catch (error) {
+      console.error("Timer update error:", error);
+      toast.error(error?.response?.data?.error || "Failed to update task timer");
+      return false;
+    } finally {
+      setIsUpdateTime(""); // optional: hide loader
     }
-    editTask(updatedTask)
   }
+
+  console.log("tasks",)
 
   useEffect(() => {
     if (projectId) {

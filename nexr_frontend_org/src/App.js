@@ -6,7 +6,6 @@ import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode";
-import { registerLicense } from '@syncfusion/ej2-base';
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-quill/dist/quill.snow.css";
@@ -20,7 +19,6 @@ import NotFound from "./components/NotFound.jsx";
 import NotificationBox from "./components/NotificationBox.jsx";
 
 export const EssentialValues = createContext(null);
-registerLicense("Ngo9BigBOggjHTQxAR8/V1JEaF5cXmRCeUx1RXxbf1x1ZFREallRTnNYUiweQnxTdEBjX3xecHRQR2BcVUBxWEleYw==")
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const [isOnline, setIsOnline] = useState(navigator.onLine);

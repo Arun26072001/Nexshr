@@ -4,7 +4,7 @@ const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks, errorCollector, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
+const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks, errorCollector, checkValidObjId, getCompanyIdFromToken, removeImgsFromServer, getTimeFromDateOrTimeData } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { PlannerType } = require("../models/PlannerTypeModel");
@@ -135,50 +135,37 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
             .populate({ path: "assignedTo", select: "FirstName LastName profile" })
             .populate({ path: "createdby", select: "FirstName LastName" })
             .exec();
+
         if (tasks.length === 0) {
             return res.status(200).send({ tasks: [], categorizeTasks: {}, planner: {} })
         }
+
         const timeUpdatedTasks = tasks.map((task) => {
-            if (!task?.spend) return task; // Ensure spend exists
+            if (!task?.spend) return task;
 
-            let { startingTime: startingTimes, endingTime: endingTimes } = task.spend;
+            const { startingTime = [], endingTime = [] } = task.spend;
+            const taskObj = task.toObject?.() || task;
 
-            if (!Array.isArray(startingTimes) || startingTimes.length === 0) {
+            const totalMinutes = startingTime.reduce((acc, startTime, i) => {
+                if (!startTime) return acc;
 
-                let totalCommentSpendTime = 0;
-                task?.comments?.map((comment) => totalCommentSpendTime += Number(comment.spend));
+                const start = getTimeFromDateOrTimeData(startTime)?.getTime?.() || new Date(startTime).getTime();
+                const end = endingTime[i]
+                    ? getTimeFromDateOrTimeData(endingTime[i])?.getTime?.() || new Date(endingTime[i]).getTime()
+                    : Date.now();
 
-                return {
-                    ...task.toObject(),
-                    spend: {
-                        ...(task.spend ? task.spend.toObject() : {}), // Ensure spend exists
-                        timeHolder: task?.spend?.timeHolder?.split(/[:.]+/)?.length === 2 && ["00:00:00"].includes(task.spend?.timeHolder) ? formatTimeFromMinutes(
-                            (Number(task.spend?.timeHolder) + totalCommentSpendTime) * 60
-                        ) : task.spend.timeHolder
-                    }
-                };
-            }
-
-            const values = startingTimes.map((startTime, index) => {
-                if (!startTime) return 0; // No start time means no value
-
-                const startTimeInMin = timeToMinutes(startTime);
-                const endTimeInMin = (endingTimes?.[index]) ? timeToMinutes(endingTimes[index]) : getCurrentTimeInMinutes();
-
-                return Math.abs(endTimeInMin - startTimeInMin);
-            });
-
-            const totalMinutes = values.reduce((acc, value) => acc + value, 0);
-            const timeHolder = formatTimeFromMinutes(totalMinutes);
+                return acc + Math.abs((end - start) / (1000 * 60));
+            }, 0);
 
             return {
-                ...task.toObject(),
+                ...taskObj,
                 spend: {
-                    ...task.spend.toObject(),
-                    timeHolder
+                    ...(task.spend?.toObject?.() || task.spend),
+                    timeHolder: formatTimeFromMinutes(totalMinutes)
                 }
             };
         }).filter(Boolean);
+
         const result = categorizeTasks(timeUpdatedTasks);
         const planner = {};
         const plannerType = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
@@ -435,6 +422,73 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
+router.put("/timer/:empId/:taskId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        const { empId, taskId } = req.params;
+        const { type } = req.query; // expected values: 'startTime' or 'stopTime'
+        const updatedData = req.body;
+
+        // 1. Prevent multiple tasks running
+        if (type === "startTime") {
+            const activeTask = await Task.findOne({
+                _id: { $ne: taskId },
+                assignedTo: empId,
+                status: "In Progress",
+                isDeleted: { $ne: true } // optional, if soft delete exists
+            });
+
+            if (activeTask) {
+                return res.status(400).json({
+                    error: `You already have a running task (${activeTask.title || activeTask._id}). Please stop it before starting another.`
+                });
+            }
+        }
+
+        // 2. Calculate total time if startingTime exists
+        if (updatedData?.spend?.startingTime?.length) {
+            const startingTimes = updatedData.spend.startingTime;
+            const endingTimes = updatedData.spend.endingTime || [];
+
+            const totalMinutes = startingTimes.reduce((acc, start, i) => {
+                if (!start) return acc;
+
+                const startMin = timeToMinutes(start);
+                const endMin = endingTimes[i]
+                    ? timeToMinutes(endingTimes[i])
+                    : getCurrentTimeInMinutes();
+
+                return acc + Math.abs(endMin - startMin);
+            }, 0);
+
+            updatedData.spend.timeHolder = formatTimeFromMinutes(totalMinutes);
+        }
+
+        // 3. Update the task
+        const updatedTask = await Task.findByIdAndUpdate(taskId, updatedData, {
+            new: true,
+        });
+
+        if (!updatedTask) {
+            return res.status(404).json({ error: "Task not found" });
+        }
+
+        // 4. Set response message
+        let message = "Timer updated";
+        if (type === "startTime") message = "Timer started";
+        else if (type === "stopTime") message = "Timer stopped";
+
+        return res.status(200).json({
+            message,
+            task: updatedTask,
+        });
+
+    } catch (error) {
+        console.error("Timer update error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const { empId, id } = req.params;
@@ -445,7 +499,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             return res.status(400).send({ error: "Invalid employee ID" });
         }
         // Fetch Task Data
-        const taskData = await Task.findById(req.params.id);
+        const taskData = await Task.findById(id);
         if (!taskData) return res.status(404).send({ error: "Task not found" });
 
         // check task validation
@@ -460,7 +514,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         // Fetch Required Employees in Parallel
         const [assignedPerson, empData, emps] = await Promise.all([
             Employee.findById(req.body.createdby).populate("company", "CompanyName logo"),
-            Employee.findById(req.params.empId),
+            Employee.findById(empId),
             Employee.find({ _id: { $in: newAssignees }, isDeleted: false }, "FirstName LastName Email fcmToken company notifications")
                 .populate("company", "CompanyName logo")
         ]);
@@ -481,7 +535,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                 return {
                     date: new Date(),
                     message: `Task field "${key}" updated by ${empData.FirstName} ${empData.LastName} from ${oldValue} to ${newValue}`,
-                    who: req.params.empId
+                    who: empId
                 };
             }
             return [];
@@ -496,6 +550,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
         if (deletedImgs.length > 0) {
             const removedFiles = removeImgsFromServer(deletedImgs);
+            console.log("removedFilesFromServer", removedFiles)
         }
 
         // Prepare optional comment update
@@ -503,7 +558,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         if (req.query.changeComments && req.body.comments && req.body.comments.length > 0) {
             updatedComment = {
                 ...req.body.comments[0],
-                createdBy: req.params.empId,
+                createdBy: empId,
                 date: new Date()
             };
         }
@@ -640,6 +695,5 @@ router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.status(500).send({ error: "An unexpected error occurred while deleting the task." });
     }
 });
-
 
 module.exports = router;

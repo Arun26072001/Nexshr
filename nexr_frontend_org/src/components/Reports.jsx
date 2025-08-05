@@ -7,7 +7,7 @@ import axios from 'axios';
 import NoDataFound from './payslip/NoDataFound';
 import CommonModel from './Administration/CommonModel';
 import { toast } from 'react-toastify';
-import { fetchTeamEmps, getDepartments } from './ReuseableAPI';
+import { fetchTeamEmps, fileUploadInServer, getDepartments } from './ReuseableAPI';
 import { Skeleton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -28,8 +28,9 @@ export default function Reports() {
     const [isAddReport, setIsAddReport] = useState(false);
     const [isViewReport, setIsViewReport] = useState(false);
     const [isEditReport, setIsEditReport] = useState(false);
+    const [previewList, setPreviewList] = useState([]);
     const [isDeleteReport, setIsDeleteReport] = useState({ type: false, value: [] });
-    const [departments, setDepartments] = useState([]);
+    const [tasks, setTasks] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [projects, setProjects] = useState([]);
     const [isWorkingApi, setIsWorkingApi] = useState(false);
@@ -68,7 +69,7 @@ export default function Reports() {
     function handleDelete(data) {
         setIsDeleteReport((pre) => ({
             ...pre,
-            value: [data._id, data.project]
+            value: [data._id, data.project._id]
         }))
         handleDeleteReport()
     }
@@ -86,8 +87,8 @@ export default function Reports() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log(error);
-
+            toast.error(error.response.data.error)
+            console.log("error in delete report", error);
         }
     }
 
@@ -113,11 +114,34 @@ export default function Reports() {
         setIsAddReport(!isAddReport);
     }
 
+    function removeAttachment(value, fileIndex) {
+        const updatedPreviewList = previewList.filter((imgFile) => imgFile !== value);
+        setPreviewList(updatedPreviewList);
+
+        const updatedAttachments = (reportObj.attachments || []).filter((file, index) => index !== fileIndex);
+        setReportObj(prev => ({
+            ...prev,
+            attachments: updatedAttachments
+        }));
+    }
+
     function changeReport(value, name) {
-        setReportObj((pre) => ({
-            ...pre,
-            [name]: value
-        }))
+        if (name === "attachments" || name.includes("attachments")) {
+            const files = Array.from(value.target.files); // Ensure it's a FileList or array of files
+            const imgUrls = files.map(file => URL.createObjectURL(file));
+
+            setPreviewList(prev => [...prev, ...imgUrls]);
+
+            setReportObj(prev => ({
+                ...prev,
+                attachments: [...(prev.attachments || []), ...files]
+            }));
+        } else {
+            setReportObj(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     }
 
     function filterByName(value) {
@@ -130,30 +154,51 @@ export default function Reports() {
 
     async function addReport() {
         setIsWorkingApi(true);
-        setErrorData("")
+        setErrorData("");
         try {
             let newReportObj = {
                 ...reportObj,
                 employees: Array.isArray(reportObj?.employees) && reportObj.employees.includes(data._id)
                     ? reportObj.employees
                     : [...(reportObj?.employees || []), data._id]
+            };
+
+            // Upload attachments if present in reportObj
+            if (reportObj?.attachments?.length > 0) {
+                try {
+                    const files = reportObj.attachments;
+                    const responseData = await fileUploadInServer(files);
+
+                    newReportObj = {
+                        ...newReportObj,
+                        attachments: responseData.files.map(file => file.originalFile)
+                    };
+                } catch (error) {
+                    if (error?.message === "Network Error") {
+                        navigate("/network-issue");
+                    }
+                    console.error("Upload error:", error);
+                    toast.error("File upload failed");
+                }
             }
+
             const res = await axios.post(`${url}/api/report/${data._id}`, newReportObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
-            })
+            });
+
             handleAddReport();
             setReportObj({});
             toast.success(res.data.message);
         } catch (error) {
-            console.log("error in add report", error)
+            console.log("error in add report", error);
             if (error?.message === "Network Error") {
-                navigate("/network-issue")
+                navigate("/network-issue");
             }
-            const errorMsg = error?.response?.data?.error
-            setErrorData(errorMsg)
-            toast.error(errorMsg)
+            const errorMsg = error?.response?.data?.error;
+            setErrorData(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setIsWorkingApi(false);
         }
@@ -163,41 +208,83 @@ export default function Reports() {
     async function editReport(updatedReport) {
         setIsWorkingApi(true);
         setErrorData("");
+
         try {
-            const res = await axios.put(`${url}/api/report/${data._id}/${updatedReport._id}`, updatedReport, {
+            let updatedReportObj = {
+                ...updatedReport,
+                employees: Array.isArray(updatedReport?.employees) && updatedReport.employees.includes(data._id)
+                    ? updatedReport.employees
+                    : [...(updatedReport?.employees || []), data._id]
+            };
+
+            // If there are new attachments to upload
+            if (updatedReport?.attachments?.length > 0) {
+                try {
+                    const files = updatedReport.attachments;
+
+                    // If files contain objects with 'originalFile', assume already uploaded
+                    const needsUpload = files.some(file => file instanceof File || file instanceof Blob);
+                    if (needsUpload) {
+                        const responseData = await fileUploadInServer(files);
+                        updatedReportObj.attachments = responseData.files.map(file => file.originalFile);
+                    }
+                } catch (error) {
+                    if (error?.message === "Network Error") {
+                        navigate("/network-issue");
+                    }
+                    console.error("Upload error:", error);
+                    toast.error("File upload failed");
+                }
+            }
+
+            const res = await axios.put(
+                `${url}/api/report/${data._id}/${updatedReport._id}`,
+                updatedReportObj,
+                {
+                    headers: {
+                        Authorization: data.token || ""
+                    }
+                }
+            );
+
+            setIsAddReport(false);
+            setIsEditReport(false);
+            setReportObj({});
+            toast.success(res.data.message);
+        } catch (error) {
+            console.log("Error editing report", error);
+            if (error?.message === "Network Error") {
+                navigate("/network-issue");
+            }
+            const errorMsg = error?.response?.data?.error;
+            setErrorData(errorMsg);
+            toast.error(errorMsg);
+        } finally {
+            setIsWorkingApi(false);
+        }
+    }
+
+
+    async function fetchEmpAssignedTasks() {
+        try {
+            const res = await axios.get(`${url}/api/task/assigned/${data._id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
             })
-            setIsAddReport(false);
-            setIsEditReport(false)
-            setReportObj({});
-            toast.success(res.data.message);
+            const taskData = res.data;
+            const empTasks = taskData.tasks || [];
+            setTasks(empTasks?.map((task) => ({ label: `${task.title} (${task.status})`, value: task._id })));
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            const errorMsg = error?.response?.data?.error
-            setErrorData(errorMsg)
-            toast.error(errorMsg)
-        }
-        setIsWorkingApi(false);
-    }
-
-    async function fetchDepartments() {
-        try {
-            const res = await getDepartments();
-            setDepartments(res.map((dept) => ({ label: dept.DepartmentName, value: dept._id })));
-        } catch (error) {
-            if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
-            console.log(error);
+            console.log("error in fetch emp's tasks", error);
         }
     }
 
     function handleViewReport() {
-        if(isViewReport){
+        if (isViewReport) {
             setReportObj({});
             setErrorData("");
         }
@@ -216,7 +303,11 @@ export default function Reports() {
                         Authorization: data.token || ""
                     }
                 })
-                setReportObj(res.data);
+                const report = res.data;
+                if (report.attachments.length > 0) {
+                    setPreviewList(report.attachments)
+                }
+                setReportObj(report);
                 if (type === "Edit") {
                     handleEditReport();
                 } else if (type === "View") {
@@ -299,16 +390,16 @@ export default function Reports() {
         if (empId) {
             fetchReportsByEmp()
         }
-        fetchDepartments();
+        fetchEmpAssignedTasks();
         fetchCompanies();
         fetchProjects();
     }, [empId, isAddReport, isEditReport, isDeleteReport.type])
-
+    console.log("previewList", previewList)
     return (
-        isViewReport ? <CommonModel type="Report View" errorMsg={errorData} isAddData={isViewReport} modifyData={fetchReportById} dataObj={reportObj} projects={projects} comps={companies} departments={departments} employees={employees} /> :
+        isViewReport ? <CommonModel type="Report View" previewList={previewList} errorMsg={errorData} isAddData={isViewReport} modifyData={fetchReportById} dataObj={reportObj} projects={projects} comps={companies} tasks={tasks} employees={employees} /> :
             isDeleteReport.type ? <CommonModel type="Report Confirmation" modifyData={handleDeleteReport} deleteData={deleteReport} isAddData={isDeleteReport.type} /> :
-                isAddReport ? <CommonModel type="Report" errorMsg={errorData} isWorkingApi={isWorkingApi} isAddData={isAddReport} projects={projects} comps={companies} departments={departments} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
-                    isEditReport ? <CommonModel type="Report" errorMsg={errorData} isWorkingApi={isWorkingApi} isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
+                isAddReport ? <CommonModel type="Report" previewList={previewList} removeAttachment={removeAttachment} errorMsg={errorData} isWorkingApi={isWorkingApi} isAddData={isAddReport} projects={projects} comps={companies} tasks={tasks} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
+                    isEditReport ? <CommonModel type="Report" previewList={previewList} removeAttachment={removeAttachment} errorMsg={errorData} isWorkingApi={isWorkingApi} isAddData={isEditReport} projects={projects} comps={companies} tasks={tasks} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
                         <>
                             <div className="projectParent">
                                 <div className="projectTitle col-lg-6 col-md-4 col-12">Reports</div>

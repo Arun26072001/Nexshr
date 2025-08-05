@@ -16,7 +16,6 @@ import Loading from '../../Loader';
 import { convertTimeStringToDate, fileUploadInServer, isValidDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import TextEditor from '../TextEditor';
 import LateLoginModal from './LateLoginModal';
 
 export default function Navbar() {
@@ -91,7 +90,6 @@ export default function Navbar() {
     const stopTimer = async (type) => {
         if (workRef.current) {
             const isStoppedTimer = await stopLoginTimer(type);
-            // console.log("isStoppedTimer", isStoppedTimer)
             if (isStoppedTimer) {
                 clearInterval(workRef.current);
                 workRef.current = null;
@@ -523,7 +521,7 @@ export default function Navbar() {
         return <Modal open={unStoppedActivies.length ? true : false} size="sm" backdrop="static">
             <Modal.Header >
                 <Modal.Title>
-                    Reason for forget to stop timer for {unStoppedActivies.length > 0 && unStoppedActivies.length >= 2 ? `${unStoppedActivies.join(" ,")}` : `${unStoppedActivies[0]}`}
+                    Reason for forget to stop timer for {unStoppedActivies.length > 0 && unStoppedActivies.length >= 2 ? `${unStoppedActivies.join(" ,")}` : `${unStoppedActivies[0]}`} ({new Date(workTimeTracker.date).toLocaleDateString()})
                 </Modal.Title>
             </Modal.Header>
 

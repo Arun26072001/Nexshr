@@ -10,9 +10,9 @@ const TrackerSchema = new mongoose.Schema({
 const spendTimeSchema = new mongoose.Schema({
     startingTime: [{ type: String }],
     endingTime: [{ type: String }],
-    timeHolder: { type: String },
+    timeHolder: { type: String, default: "00:00:00" },
     reasonForLate: { type: String }
-}, { _id: false, timestamps: true })
+}, { _id: false })
 
 const taskSchema = new mongoose.Schema({
     title: { type: String },
@@ -48,47 +48,46 @@ const Task = mongoose.model("Task", taskSchema);
 const taskValidation = Joi.object({
     _id: Joi.string().allow("").label('_id'),
     __v: Joi.string().allow(0).label('__v'),
-    createdAt: Joi.any().optional(),
-    updatedAt: Joi.any().optional(),
-    company: Joi.any().optional(),
-    title: Joi.string().required().disallow(null, ' ', 'none', 'undefined').label('Title'),
+    createdAt: Joi.any().optional().label('createdAt'),
+    updatedAt: Joi.any().optional().label('updatedAt'),
+    company: Joi.any().optional().label('company'),
+    title: Joi.string().required().disallow(null, ' ', 'none', 'undefined').label('title'),
     priority: Joi.string()
         .valid('Low', 'Medium', 'High', 'Critical')
         .required()
-        .label('Priority'),
-    subTask: Joi.any().optional(),
-    remind: Joi.any().optional(),
-    dependantTasks: Joi.any().optional(),
-    observers: Joi.any().optional(),
-    participants: Joi.any().optional(),
+        .label('priority'),
+    subTask: Joi.any().optional().label('subTask'),
+    remind: Joi.any().optional().label('remind'),
+    dependantTasks: Joi.any().optional().label('dependantTasks'),
+    observers: Joi.any().optional().label('observers'),
+    participants: Joi.any().optional().label('participants'),
     attachments: Joi.array()
-        .items(Joi.string().label('Attachment URL'))
-        .label('Attachments'),
+        .items(Joi.string().label('attachments'))
+        .label('attachments'),
     description: Joi.string().allow('').label('description'),
     assignedTo: Joi.array().min(1)
-        .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Employee ID'))
+        .items(Joi.any())
         .required()
         .label('assignedTo'),
-    from: Joi.date().required().label('from Date'),
+    from: Joi.date().required().label('from'),
     to: Joi.date()
         .greater(Joi.ref('from'))
         .required()
-        .label('to Date')
-        .messages({ "date.min": "'To' Date must be greater than 'From' Date" }),
+        .label('to')
+        .messages({ "date.min": "'to' must be greater than 'from'" }),
     status: Joi.string()
         .valid('Pending', 'In Progress', 'Completed', 'On Hold')
         .required()
-        .label('Status'),
-    createdby: Joi.any()
-        .optional(),
-    tags: Joi.array().items(Joi.string()).optional(),
-    tracker: Joi.any().label("Tracker"),
-    estTime: Joi.any().required().label("EstTime"),
-    spend: Joi.any().label("Spend"),
-    comments: Joi.array().items(Joi.string()).label("Comments"),
-    isDeleted: Joi.boolean().allow("", null).label("Trash"),
-    category: Joi.any().optional(),
-    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('Project ID'),
+        .label('status'),
+    createdby: Joi.any().optional().label('createdby'),
+    tags: Joi.array().items(Joi.string()).optional().label('tags'),
+    tracker: Joi.any().label('tracker'),
+    estTime: Joi.number().required().label('estTime'),
+    spend: Joi.any().label('spend'),
+    comments: Joi.array().items(Joi.string()).label('comments'),
+    isDeleted: Joi.boolean().allow("", null).label('isDeleted'),
+    category: Joi.any().optional().label('category'),
+    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('project'),
 });
 
 module.exports = {
