@@ -16,7 +16,6 @@ import Loading from '../../Loader';
 import { convertTimeStringToDate, fileUploadInServer, isValidDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import TextEditor from '../TextEditor';
 import LateLoginModal from './LateLoginModal';
 
 export default function Navbar() {
@@ -91,7 +90,6 @@ export default function Navbar() {
     const stopTimer = async (type) => {
         if (workRef.current) {
             const isStoppedTimer = await stopLoginTimer(type);
-            // console.log("isStoppedTimer", isStoppedTimer)
             if (isStoppedTimer) {
                 clearInterval(workRef.current);
                 workRef.current = null;

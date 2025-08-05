@@ -69,7 +69,7 @@ export default function Reports() {
     function handleDelete(data) {
         setIsDeleteReport((pre) => ({
             ...pre,
-            value: [data._id, data.project]
+            value: [data._id, data.project._id]
         }))
         handleDeleteReport()
     }
@@ -87,8 +87,8 @@ export default function Reports() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log(error);
-
+            toast.error(error.response.data.error)
+            console.log("error in delete report", error);
         }
     }
 
@@ -143,8 +143,6 @@ export default function Reports() {
             }));
         }
     }
-    console.log("reportObj", reportObj)
-
 
     function filterByName(value) {
         if (["", null].includes(value)) {
@@ -305,7 +303,11 @@ export default function Reports() {
                         Authorization: data.token || ""
                     }
                 })
-                setReportObj(res.data);
+                const report = res.data;
+                if (report.attachments.length > 0) {
+                    setPreviewList(report.attachments)
+                }
+                setReportObj(report);
                 if (type === "Edit") {
                     handleEditReport();
                 } else if (type === "View") {

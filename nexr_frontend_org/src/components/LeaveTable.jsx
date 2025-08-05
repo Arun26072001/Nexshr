@@ -568,25 +568,36 @@ export default function LeaveTable({ data, Account, handleLateLogin, getCheckedV
             getter: (row) => row?.name || "N/A"
         },
         {
-            id: 'startDate',
-            label: 'Start Date',
+            id: 'date',
+            label: 'Date',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row.startDate ? new Date(row.startDate).toLocaleDateString() : 'N/A',
+            getter: (row) => row?.date ? new Date(row.date).toLocaleDateString() : 'N/A',
         },
         {
-            id: 'endDate',
-            label: 'End Date',
+            id: 'project',
+            label: 'Project',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row.endDate ? new Date(row.endDate).toLocaleDateString() : 'N/A',
+            getter: (row) => row?.project?.name || 'N/A'  // assumes project is populated
+        },
+        {
+            id: 'task',
+            label: 'Task',
+            minWidth: 130,
+            align: 'left',
+            getter: (row) => row?.task?.title || 'N/A'  // assumes task is populated
         },
         {
             id: 'createdby',
             label: 'Created By',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.createdby?.FirstName[0].toUpperCase() + row?.createdby?.FirstName.slice(1)
+            getter: (row) => {
+                const first = row?.createdby?.FirstName || "";
+                const last = row?.createdby?.LastName || "";
+                return first ? first[0].toUpperCase() + first.slice(1) + " " + last : "N/A";
+            }
         },
         {
             id: "Action",
@@ -1116,7 +1127,7 @@ export default function LeaveTable({ data, Account, handleLateLogin, getCheckedV
                 return setColumns(column21)
             } else if (params["*"] === "holiday") {
                 return setColumns(column22);
-            } else if (item?.createdby && params["*"] === "reports") {
+            } else if (params["*"] === "reports") {
                 return setColumns(column12);
             } else if (params["*"] === "late-punch") {
                 return setColumns(column24);
@@ -1242,7 +1253,7 @@ export default function LeaveTable({ data, Account, handleLateLogin, getCheckedV
                                                                         <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
                                                                     </b>
                                                                 </Dropdown.Item>
-                                                                {["admin","hr"].includes(whoIs) &&
+                                                                {["admin", "hr"].includes(whoIs) &&
                                                                     <>
                                                                         <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/employee/edit/${row._id}`)}>
                                                                             <b>

@@ -420,10 +420,13 @@ export default function Projects() {
                                                                 ))} {
                                                                     (Array.isArray(project.employees) && project.employees.length > 4 ? "..." : "")
                                                                 }
-                                                                <AddCircleOutlineRoundedIcon fontSize="large" sx={{ cursor: "pointer" }} color="disabled" onClick={() => {
-                                                                    fetchProjectById(project._id)
-                                                                    handleEditProject()
-                                                                }} />
+                                                                {
+                                                                    project.createdby === data._id &&
+                                                                    <AddCircleOutlineRoundedIcon fontSize="large" sx={{ cursor: "pointer" }} color="disabled" onClick={() => {
+                                                                        fetchProjectById(project._id)
+                                                                        handleEditProject()
+                                                                    }} />
+                                                                }
                                                             </div>
 
                                                             <div className='w-100' onClick={() => {

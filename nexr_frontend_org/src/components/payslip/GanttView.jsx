@@ -1,68 +1,67 @@
-import { useEffect, useState } from 'react';
-import {
-    GanttComponent,
-    ColumnsDirective,
-    ColumnDirective
-} from '@syncfusion/ej2-react-gantt';
-import Loading from '../Loader';
-import NoDataFound from './NoDataFound';
+import { useEffect, useState } from "react";
+import { Gantt, ViewMode } from "gantt-task-react";
+import "gantt-task-react/dist/index.css";
+import Loading from "../Loader";
+import NoDataFound from "./NoDataFound";
+import { SelectPicker } from "rsuite";
 
 const Default = ({ tasks, isLoading }) => {
     const [taskData, setTaskData] = useState([]);
+    const [view, setView] = useState(ViewMode.Day);
+    const viewOptions = [
+        { label: 'Hour', value: ViewMode.Hour },
+        { label: 'Day', value: ViewMode.Day },
+        { label: 'Week', value: ViewMode.Week },
+        { label: 'Month', value: ViewMode.Month }
+    ]
 
     useEffect(() => {
-        const arrangedData = tasks.map((task, index) => ({
-            TaskID: index,
-            TaskName: task.title,
-            StartDate: new Date(task.from),
-            EndDate: new Date(task.to),
-            Duration: (task.estTime || 0) / 24,
-            Progress: (task.spend.timeHolder || 0) + "hrs",
-            Status: task.status,
-            child: []
-        }));
-        setTaskData(arrangedData)
+        const arrangedData = tasks.map((task, index) => {
+            const start = new Date(task.from);
+            const end = new Date(task.to);
+            const durationInHours = (task.estTime || 0);
+            const spentHours = task.spend?.timeHolder || 0;
+
+            return {
+                id: String(index),
+                name: task.title,
+                start,
+                end,
+                type: "task",
+                progress: Math.min((spentHours / durationInHours) * 100, 100) || 0,
+                isDisabled: false,
+                styles: { progressColor: "#34699A", progressSelectedColor: "#113F67" }
+            };
+        });
+
+        setTaskData(arrangedData);
     }, [tasks]);
-
-    const taskFields = {
-        id: 'TaskID',
-        name: 'TaskName',
-        startDate: 'StartDate',
-        endDate: 'EndDate',
-        duration: 'Duration',
-        progress: 'Progress',
-        status: 'Status',
-        child: 'subtasks'
-    };
-
-    const labelSettings = {
-        leftLabel: 'TaskName',
-    };
 
     return (
         isLoading ? <Loading height='80vh' /> :
             taskData.length > 0 ?
-                <div className='control-pane'>
-                    <div className='control-section'>
-                        <GanttComponent
-                            id='Default'
-                            dataSource={taskData}
-                            treeColumnIndex={1}
-                            taskFields={taskFields}
-                            labelSettings={labelSettings}
-                            height='410px'
-                        >
-                            <ColumnsDirective>
-                                <ColumnDirective field='TaskID' width='80' />
-                                <ColumnDirective field='TaskName' headerText='Title' width='250' clipMode='EllipsisWithTooltip' />
-                                <ColumnDirective field='StartDate' />
-                                <ColumnDirective field='Duration' />
-                                <ColumnDirective field='Progress' />
-                                <ColumnDirective field='Predecessor' />
-                            </ColumnsDirective>
-                        </GanttComponent>
+                <div style={{ padding: "1rem", backgroundColor: "#fff" }}>
+                    <div style={{ marginBottom: "1rem", width: 240 }}>
+                        <label style={{ marginRight: "0.5rem" }}>View Mode:</label>
+                        <SelectPicker
+                            data={viewOptions}
+                            value={view}
+                            onChange={(value) => setView(value)}
+                            style={{ width: 160 }}
+                            cleanable={false}
+                            searchable={false}
+                            placement="bottomStart"
+                        />
                     </div>
-                </div> : <NoDataFound message={"Task data not found"} />
+
+                    <Gantt
+                        tasks={taskData}
+                        viewMode={view}
+                        listCellWidth="155px"
+                        columnWidth={70}
+                    />
+                </div>
+                : <NoDataFound message="Task data not found" />
     );
 };
 

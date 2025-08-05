@@ -3,7 +3,6 @@ const Joi = require("joi");
 
 const reportSchema = new mongoose.Schema({
     name: { type: String },
-    // department: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
     date: { type: Date, default: new Date() },
     company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },

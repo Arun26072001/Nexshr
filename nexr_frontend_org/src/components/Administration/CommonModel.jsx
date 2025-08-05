@@ -283,7 +283,7 @@ const CommonModel = ({
                                 value={dataObj?.[`title`] || ""}
                                 onChange={type !== "Task View" ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), "title") : null}
                             />
-                            {errorMsg?.toLowerCase()?.includes("title") && <p className='text-danger'>{errorMsg}</p>}
+                            {errorMsg?.toLowerCase().includes("title") && <p className='text-danger'>{errorMsg}</p>}
                         </div>
                     </div>}
 
@@ -347,97 +347,97 @@ const CommonModel = ({
                 </div>
 
                 {["Task", "Task View", "Add Comments", "Edit Comments", "Report", "Report View", "Organization", "Company"].includes(type) && (
-                        <div className="col-full">
-                            <div className="modelInput">
-                                <p className={`modelLabel ${!["Task", "Task View", "Add Comments", "Edit Comments"].includes(type) ? "important" : ""}`}>{type === "Organization" ? "OrgImage" : type === "Company" ? "Logo" : "Attachments"}: </p>
-                                <input
-                                    type="file"
-                                    disabled={["Task View", "Report View"].includes(type)}
-                                    className="form-control"
-                                    onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : type === "Organization" ? "orgImg" : type === "Company" ? "logo" : "attachments")}
-                                    multiple={!["Organization", "Company"].includes(type)}
-                                />
-                                {["logo", "attachments", "orgimg"].some((item) => errorMsg?.toLowerCase()?.includes(item?.toLowerCase())) ? <div className="text-center text-danger">{errorMsg}</div> : null}
-                            </div>
+                    <div className="col-full">
+                        <div className="modelInput">
+                            <p className={`modelLabel ${!["Task", "Task View", "Add Comments", "Edit Comments"].includes(type) ? "important" : ""}`}>{type === "Organization" ? "OrgImage" : type === "Company" ? "Logo" : "Attachments"}: </p>
+                            <input
+                                type="file"
+                                disabled={["Task View", "Report View"].includes(type)}
+                                className="form-control"
+                                onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : type === "Organization" ? "orgImg" : type === "Company" ? "logo" : "attachments")}
+                                multiple={!["Organization", "Company"].includes(type)}
+                            />
+                            {["logo", "attachments", "orgimg"].some((item) => errorMsg?.toLowerCase()?.includes(item?.toLowerCase())) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                        </div>
 
-                            {/* Display preview images */}
-                            {previewList?.length > 0 || preview ? (
-                                <div className='d-flex align-items-center justify-content-center flex-wrap'>
-                                    {
-                                        ["Organization", "Company"].includes(type) ? <div className="position-relative">
-                                            <img
-                                                src={preview}
-                                                className="w-25 h-auto"
-                                                alt="uploaded file"
-                                                style={{ borderRadius: "4px" }}
-                                            /> {
-                                                ["Company", "Task View"].includes(type) ? null :
-                                                    <button onClick={() => removePreview()} className="remBtn">
-                                                        &times;
-                                                    </button>
-                                            }
-                                        </div>
-                                            :
-                                            previewList?.length &&
-                                            previewList?.map((imgFile, index) => (
-                                                <div className="col-lg-4 p-2" key={index}>
-                                                    <div className="position-relative">
-                                                        {(dataObj?.attachments?.length === previewList?.length && dataObj?.attachments[index]?.type === "video/mp4" || imgFile.includes(".mp4")) ?
-                                                            <video className="w-100 h-auto" controls>
-                                                                <source src={imgFile} type={dataObj?.attachments[index].type} />
+                        {/* Display preview images */}
+                        {previewList?.length > 0 || preview ? (
+                            <div className='d-flex align-items-center justify-content-center flex-wrap'>
+                                {
+                                    ["Organization", "Company"].includes(type) ? <div className="position-relative">
+                                        <img
+                                            src={preview}
+                                            className="w-25 h-auto"
+                                            alt="uploaded file"
+                                            style={{ borderRadius: "4px" }}
+                                        /> {
+                                            ["Company", "Task View", "Report View"].includes(type) ? null :
+                                                <button onClick={() => removePreview()} className="remBtn">
+                                                    &times;
+                                                </button>
+                                        }
+                                    </div>
+                                        :
+                                        previewList?.length &&
+                                        previewList?.map((imgFile, index) => (
+                                            <div className="col-lg-4 p-2" key={index}>
+                                                <div className="position-relative">
+                                                    {(dataObj?.attachments?.length === previewList?.length && dataObj?.attachments[index]?.type === "video/mp4" || imgFile.includes(".mp4")) ?
+                                                        <video className="w-100 h-auto" controls>
+                                                            <source src={imgFile} type={dataObj?.attachments[index].type} />
+                                                        </video> :
+                                                        <img
+                                                            src={imgFile}
+                                                            className="w-100 h-auto"
+                                                            alt="uploaded file"
+                                                            style={{ borderRadius: "4px" }}
+                                                        />}
+                                                    {["Company", "Task View", "Report View"].includes(type) ? null :
+                                                        <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
+                                                            &times;
+                                                        </button>}
+                                                </div>
+                                            </div>
+                                        ))}
+                            </div>
+                        ) : (
+                            <>
+                                {/* Attachments from dataObj */}
+                                {type === "Add Comments"
+                                    ? dataObj?.comments?.[0]?.attachments?.length > 0
+                                    : dataObj?.attachments?.length > 0
+                                        ? (dataObj?.comments?.[0]?.attachments ?? dataObj?.attachments)?.map((imgFile, index) => (
+                                            <div key={index} className="col-lg-4 p-2" >
+                                                <div className="position-relative">
+                                                    {
+                                                        (dataObj?.comments?.[0]?.attachments?.length === previewList?.length && dataObj?.comments?.[0]?.attachments[index].type === "video/mp4") ?
+                                                            <video
+                                                                className="w-100 h-auto"
+                                                                controls>
+                                                                <source src={imgFile} type={dataObj?.attachments[index]?.type} />
                                                             </video> :
                                                             <img
-                                                                src={imgFile}
                                                                 className="w-100 h-auto"
+                                                                src={imgFile}
                                                                 alt="uploaded file"
                                                                 style={{ borderRadius: "4px" }}
-                                                            />}
-                                                        {["Company", "Task View"].includes(type) ? null :
+                                                            />
+                                                    }
+                                                    {/* Close button */}
+                                                    {
+                                                        ["Task View"].includes(type) ? null :
                                                             <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
                                                                 &times;
-                                                            </button>}
-                                                    </div>
+                                                            </button>
+                                                    }
                                                 </div>
-                                            ))}
-                                </div>
-                            ) : (
-                                <>
-                                    {/* Attachments from dataObj */}
-                                    {type === "Add Comments"
-                                        ? dataObj?.comments?.[0]?.attachments?.length > 0
-                                        : dataObj?.attachments?.length > 0
-                                            ? (dataObj?.comments?.[0]?.attachments ?? dataObj?.attachments)?.map((imgFile, index) => (
-                                                <div key={index} className="col-lg-4 p-2" >
-                                                    <div className="position-relative">
-                                                        {
-                                                            (dataObj?.comments?.[0]?.attachments?.length === previewList?.length && dataObj?.comments?.[0]?.attachments[index].type === "video/mp4") ?
-                                                                <video
-                                                                    className="w-100 h-auto"
-                                                                    controls>
-                                                                    <source src={imgFile} type={dataObj?.attachments[index]?.type} />
-                                                                </video> :
-                                                                <img
-                                                                    className="w-100 h-auto"
-                                                                    src={imgFile}
-                                                                    alt="uploaded file"
-                                                                    style={{ borderRadius: "4px" }}
-                                                                />
-                                                        }
-                                                        {/* Close button */}
-                                                        {
-                                                            ["Task View"].includes(type) ? null :
-                                                                <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
-                                                                    &times;
-                                                                </button>
-                                                        }
-                                                    </div>
-                                                </div>
-                                            ))
-                                            : null}
-                                </>
-                            )}
-                        </div>
-                    )}
+                                            </div>
+                                        ))
+                                        : null}
+                            </>
+                        )}
+                    </div>
+                )}
 
                 {["Task", "Task View", "Announcement"].includes(type) && (
                     <div className="d-flex justify-content-between">
@@ -589,22 +589,21 @@ const CommonModel = ({
                             </div>
                         }
                         {
-                            ["Task"].includes(type) && !dataObj?._id &&
+                            ["Task"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel important'>Est Time:</p>
                                     <InputNumber
                                         min={0}
                                         size='lg'
-                                        className={`${errorMsg?.toLowerCase()?.includes("estTime")}`}
+                                        className={`${errorMsg?.toLowerCase()?.includes("esttime") ? "error" : ""}`}
                                         placeholder="Select Time"
                                         style={{ width: "100%" }}
-                                        value={(new Date(String(dataObj?.to)) - new Date(String(dataObj?.from))) / (1000 * 60 * 60) || 0}
-                                        disabled={true}
+                                        value={dataObj.estTime}
                                         onChange={(e) => changeData(e, "estTime")}
                                         step={0.01}
                                     />
-                                    {errorMsg?.toLowerCase()?.includes("estTime") ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {errorMsg?.toLowerCase()?.includes("esttime") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -629,43 +628,6 @@ const CommonModel = ({
                         }
                     </>
                 </div>
-
-                {
-                    ["Task"].includes(type) && dataObj?._id &&
-                    <div className='d-flex justify-content-between gap-2'>
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel important'>Est Time:</p>
-                                <InputNumber
-                                    min={0}
-                                    size='lg'
-                                    className={`${errorMsg?.toLowerCase()?.includes("estTime")}`}
-                                    placeholder="Select Time"
-                                    style={{ width: "100%" }}
-                                    value={dataObj?.estTime}
-                                    onChange={(e) => {
-                                        if (e === null || e === '' || e >= 0) {
-                                            changeData(e, "estTime")
-                                        }
-                                    }}
-                                    step={0.01}
-                                />
-                                {errorMsg?.toLowerCase()?.includes("estTime") ? <div className="text-center text-danger">{errorMsg}</div> : null}
-                            </div>
-                        </div>
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Spend time:</p>
-                                <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend?.timeHolder}
-                                    onChange={(e) => {
-                                        if (e === null || e === '' || e >= 0) {
-                                            changeData(e, "spend.timeHolder")
-                                        }
-                                    }} />
-                            </div>
-                        </div>
-                    </div>
-                }
 
                 {
                     ["Project", "Project View", "Assign", "Task Assign", "Report", "Report View", "Team", "WorkPlace", "View WorkPlace"].includes(type) && (
@@ -712,7 +674,7 @@ const CommonModel = ({
                                         data={employees}
                                         required
                                         size="lg"
-                                        className={`${errorMsg?.toLowerCase()?.includes(["assignedTo", "participants", "observers"]) ? "error" : ""}`}
+                                        className={`${errorMsg?.toLowerCase()?.includes(["assignedto", "participants", "observers"]) ? "error" : ""}`}
                                         defaultValue={field === "assignedTo" ? [data._id] : []}
                                         appearance="default"
                                         disabled={["Task View"].includes(type)}
@@ -794,8 +756,8 @@ const CommonModel = ({
                     ["Project", "Task", "Task View", "Report", "Report View", "Project View", "Email Template"].includes(type) &&
                     <>
                         <div className="col-full">
-                            <div className="modelInput important">
-                                <p className='modelLabel'>{type === "Email Template" ? "Content" : "Description"}:</p>
+                            <div className="modelInput">
+                                <p className={`modelLabel ${["Report", "Report View"].includes(type) ? "important" : ""}`}>{type === "Email Template" ? "Content" : "Description"}:</p>
                                 <TextEditor
                                     handleChange={!["Task View", "Project View", "Report View"].includes(type) ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Email Template" ? "content" : "description") : null}
                                     content={dataObj?.[type === "Email Template" ? "content" : "description"]}
@@ -841,7 +803,7 @@ const CommonModel = ({
                                         appearance='default'
                                         onChange={(e) => changeData(e, "PostalCode")}
                                     />
-                                    {errorMsg?.toLowerCase()?.includes("PostalCode") ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {errorMsg?.toLowerCase()?.includes("postalcode") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>

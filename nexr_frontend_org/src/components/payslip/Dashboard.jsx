@@ -338,51 +338,75 @@ const Dashboard = () => {
         });
     }
 
-    // add task
+    async function createTask(task) {
+        try {
+            const assignedTo = Array.isArray(task?.assignedTo)
+                ? [...new Set([...task.assignedTo, data._id])]
+                : [data._id];
+
+            const newTaskObj = { ...task, assignedTo };
+
+            const res = await axios.post(`${url}/api/task/${data._id}`, newTaskObj, {
+                headers: { Authorization: data.token || "" }
+            });
+
+            toast.success(res.data.message);
+            return true;
+        } catch (error) {
+            const errorMsg = error?.response?.data?.error || "Task creation failed";
+            console.error("Task creation error:", errorMsg);
+            setErrorData(errorMsg);
+            toast.error(errorMsg);
+            return false;
+        }
+    }
+
     async function addTask() {
-        let newTask;
         setIsWorkingApi(true);
         setErrorData("");
-        if (taskObj?.attachments?.length > 0) {
-            try {
-                const files = taskObj.attachments;
-                const responseData = await fileUploadInServer(files)
+        let newTask;
 
+        try {
+            const estTime = getTotalWorkingHourPerDay(taskObj.from, taskObj.to);
+
+            if (taskObj?.attachments?.length > 0) {
+                const responseData = await fileUploadInServer(taskObj.attachments);
                 newTask = {
                     ...taskObj,
-                    estTime: getTotalWorkingHourPerDay(taskObj.from, taskObj.to),
+                    estTime,
                     attachments: responseData.files.map(file => file.originalFile)
                 };
-
-                // After successful upload, create the task
-                await createTask(newTask);
-                setTaskObj({});
-                setIsAddTask(false)
-                navigateToMyTask()
-                fetchEmpAssignedTasks();
-            } catch (error) {
-                if (error?.message === "Network Error") {
-                    navigate("/network-issue")
-                }
-                const errorMsg = error?.response?.data?.error
-                setErrorData(errorMsg)
-                toast.error(errorMsg)
-            } finally {
-                setIsLoading(false);
+            } else {
+                newTask = {
+                    ...taskObj,
+                    estTime
+                };
             }
-        } else {
-            newTask = {
-                ...taskObj,
-                estTime: (new Date(taskObj.to) - new Date(taskObj.from)) / (1000 * 60 * 60)
-            };
 
-            await createTask(newTask);
-            setTaskObj({});
-            setIsViewtask(false);
-            navigateToMyTask()
+            const success = await createTask(newTask);
+
+            if (success) {
+                setTaskObj({});
+                setIsAddTask(false);
+                setIsViewtask(false); // covers both modal close scenarios
+                navigateToMyTask();
+                fetchEmpAssignedTasks();
+            }
+        } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue");
+            } else {
+                const errorMsg = error?.response?.data?.error || "An error occurred";
+                console.error("addTask error:", errorMsg);
+                setErrorData(errorMsg);
+                toast.error(errorMsg);
+            }
+        } finally {
+            setIsLoading(false);
+            setIsWorkingApi(false);
         }
-        setIsWorkingApi(false);
     }
+
 
     // edit task
     async function editTask(updatedTask) {

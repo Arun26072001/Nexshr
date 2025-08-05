@@ -21,6 +21,7 @@ const checkValidObjId = (req, res, next) => {
 // Create Report
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, checkValidObjId, async (req, res) => {
   try {
+    const id = req.params.id;
     // get company ID
     const companyId = getCompanyIdFromToken(req.headers["authorization"]);
     if (!companyId) {
@@ -70,7 +71,9 @@ router.get("/createdby/:id", verifyAdminHREmployeeManagerNetwork, checkValidObjI
       return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
     }
     const reports = await Report.find({ createdby: req.params.id, isDeleted: false, company: companyId })
-      .populate({ path: "createdby", select: "FirstName LastName" })
+      .populate("createdby","FirstName LastName")
+      .populate("project", "name")
+      .populate("task", "title")
       .lean();
 
     return res.send({ reports });
@@ -96,16 +99,15 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, checkValidObjId, async (
 // Update a report
 router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, checkValidObjId, async (req, res) => {
   try {
-
+    const { empId, id } = req.params;
     const updatedReport = { ...req.body };
-
     const { error } = ReportValidation.validate(updatedReport);
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }
 
     const report = await Report.findByIdAndUpdate(
-      req.params.id,
+      id,
       updatedReport,
       { new: true, runValidators: true }
     );

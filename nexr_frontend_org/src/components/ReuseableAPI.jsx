@@ -574,15 +574,14 @@ function formatDate(date) {
     return `${actualDate[1]}, ${actualDate[2]}`
 }
 
-function formatTimeFromHour(hour) {
-    if (!hour) {
-        return `00:00:00`;
-    }
-    const hours = Math.floor(hour);
-    const minutes = Math.floor(hour % 60);
-    const seconds = Math.floor((hour * 60) % 60); // Convert remaining fraction to seconds
+function formatTimeFromHour(decimalHours) {
+    const totalSeconds = Math.round(decimalHours * 3600);
 
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 function isValidDate(value) {
@@ -655,13 +654,30 @@ async function fetchCompanies() {
     }
 }
 
+const getNextUpcomingHoliday = (holidayList = []) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to midnight
+
+    const upcoming = holidayList
+        .flatMap(item => item.holidays.map(h => ({
+            date: new Date(h.date),
+            title: h.title,
+            year: item.currentYear,
+            company: typeof item.company === "object" ? item.company.name : item.company
+        })))
+        .filter(h => h.date >= today)
+        .sort((a, b) => a.date - b.date);
+
+    return upcoming[0] || {};
+};
+
 function getTimeFromHour(timeStr, min = false) {
     if (timeStr) {
         const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
         if (min) {
-            return ((hours * 60) + minutes + (seconds / 60))?.toFixed(2);
+            return ((hours * 60) + minutes + (seconds / 60));
         } else {
-            return (((hours * 60) + minutes + (seconds / 60)) / 60)?.toFixed(2);
+            return (((hours * 60) + minutes + (seconds / 60)) / 60);
         }
     } else {
         return 0;
@@ -878,6 +894,7 @@ export {
     fileUploadInServer,
     checkEmpIsPermanentWFH,
     fetchTeamEmps,
+    getNextUpcomingHoliday,
     convertTimeStringToDate,
     getDayDifference,
     exportAttendanceToExcel
