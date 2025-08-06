@@ -938,7 +938,7 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
             From: `<${process.env.FROM_MAIL}> (Nexshr)`,
             To: emp.Email,
             Subject: `You have punched in for the ${emp.clockIns[0].date}`,
-            HtmlBody: htmlContent,
+            HtmlBody: htmlContent
         });
         return res.send({ message: "We have send mail for you have completed 8 working hours." })
     } catch (error) {

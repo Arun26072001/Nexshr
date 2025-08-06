@@ -262,11 +262,11 @@ export default function Home() {
                                         peopleOnLeave.map((leave, index) => {
                                             const fromDate = leave.fromDate;
                                             const toDate = leave.toDate;
-                                            return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1 ' style={{ boxShadow: 'none', background: "white" }}>
-                                                <img src={leave?.employee?.profile || profile} alt="profile" className='imgContainer' />
-                                                <div className="d-block">
+                                            return <div key={index} className="row box-content align-items-center justify-content-around" style={{ boxShadow: 'none', background: "white", height: "fit-content", margin: "5px 0px" }}>
+                                                <div className="col-auto"><img src={leave?.employee?.profile || profile} alt="profile" className="imgContainer" /></div>
+                                                <div className="col">
                                                     <p style={{ fontSize: "13px" }}><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
-                                                    <p className='sub_text'><b>{formatDate(fromDate) + " " + (leave.periodOfLeave === "half day" ? `${new Date(fromDate).getHours()}:${new Date(toDate).getMinutes()}` : "")} - {formatDate(toDate) + " " + (leave.periodOfLeave === "half day" ? `${new Date(toDate).getHours()}:${new Date(toDate).getMinutes()}` : "")}</b></p>
+                                                    <p className="sub_text"><b>{formatDate(fromDate)} {leave.periodOfLeave === "half day" ? `${new Date(fromDate).getHours()}:${new Date(toDate).getMinutes()}` : ""} - {formatDate(toDate)} {leave.periodOfLeave === "half day" ? `${new Date(toDate).getHours()}:${new Date(toDate).getMinutes()}` : ""}</b></p>
                                                     <p className={`sub_text ${leave?.leaveType?.toLowerCase()?.includes("unpaid") ? "text-danger" : "text-success"}`}>{leave.leaveType}</p>
                                                 </div>
                                             </div>
@@ -290,11 +290,11 @@ export default function Home() {
                                 </div> :
                                     peopleOnWorkFromHome.length ?
                                         peopleOnWorkFromHome.map((wfh, index) => {
-                                            return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white", height: "fit-content" }}>
-                                                <img src={wfh?.employee?.profile || profile} alt="profile" className='imgContainer' />
-                                                <div className="d-block">
+                                            return <div key={index} className="row box-content align-items-center justify-content-around" style={{ boxShadow: 'none', background: "white", height: "fit-content", margin: "5px 0px" }}>
+                                                <div className="col-auto"><img src={wfh?.employee?.profile || profile} alt="profile" className="imgContainer" /></div>
+                                                <div className="col">
                                                     <p style={{ fontSize: "13px" }}><b>{wfh?.employee?.FirstName[0].toUpperCase() + wfh?.employee?.FirstName.slice(1) + " " + wfh?.employee?.LastName}</b>({wfh?.employee?.team?.teamName || "TeamName"})</p>
-                                                    <p className='sub_text'><b>{formatDate(wfh.fromDate)} - {formatDate(wfh.toDate)}</b></p>
+                                                    <p className="sub_text"><b>{formatDate(wfh.fromDate)} - {formatDate(wfh.toDate)}</b></p>
                                                 </div>
                                             </div>
                                         }) : <p className='homeEmpListtxt'>No one in Work From Home</p>

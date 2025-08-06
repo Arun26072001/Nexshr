@@ -586,6 +586,7 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
           select: "teamName"
         }
       }).lean().exec();
+    console.log("leave", leaveData)
 
     return res.status(200).send(leaveData);
   } catch (error) {
@@ -997,6 +998,7 @@ leaveApp.get("/check-is-valid-leave/:id", verifyAdminHREmployeeManagerNetwork, a
 // Optimized and cleaned leave application route
 leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
   try {
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]) || "";
     const { empId } = req.params;
     // check is valid id
     if (!checkValidObjId(empId)) {
@@ -1159,6 +1161,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       coverBy: coverByValue,
       employee: personId,
       appliedBy: empId,
+      company: companyId,
     };
 
     // 10.Deduct days if approved and not permission
