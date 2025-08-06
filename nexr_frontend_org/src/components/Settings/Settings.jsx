@@ -48,35 +48,37 @@ export default function Settings() {
   };
 
   return (
-    <Box sx={{width: '100%'}}>
+    <Box sx={{ width: '100%' }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange}  aria-label="basic tabs example">
-          <Tab label="Company" {...a11yProps(0)} className='ccc' />
-          <Tab label="Permission" {...a11yProps(1)} className='ccc'/>
-          <Tab label="Working time patterns" {...a11yProps(2)} className='ccc'/>
-          <Tab label="Notifications" {...a11yProps(3)} className='ccc' />
-          <Tab label="Place of work" {...a11yProps(4)} className='ccc'/>
-          <Tab label="Time zone"  {...a11yProps(5)} className='ccc'/>
+        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+          <Tab label="Company" {...a11yProps(0)} className="ccc" />
+          <Tab label="Working time patterns" {...a11yProps(1)} className="ccc" />
+          <Tab label="Notifications" {...a11yProps(2)} className="ccc" />
+          <Tab label="Place of work" {...a11yProps(3)} className="ccc" />
+          <Tab label="Time zone" {...a11yProps(4)} className="ccc" />
         </Tabs>
       </Box>
+
       <CustomTabPanel value={value} index={0}>
-         <CompanyTab />
+        <CompanyTab />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
-        <Permission />
-      </CustomTabPanel>
-      <CustomTabPanel value={value} index={2}>
         <TimePattern />
       </CustomTabPanel>
-      <CustomTabPanel value={value} index={3}>
+      <CustomTabPanel value={value} index={2}>
         <Notification />
       </CustomTabPanel>
-      <CustomTabPanel value={value} index={4}>
+      <CustomTabPanel value={value} index={3}>
         <WorkPlaceTab />
       </CustomTabPanel>
-      <CustomTabPanel value={value} index={5}>
+      <CustomTabPanel value={value} index={4}>
         <TimezoneTab />
       </CustomTabPanel>
     </Box>
   );
 }
+
+//     {/* <Tab label="Permission" {...a11yProps(1)} className='ccc'/> */}
+// {/* <CustomTabPanel value={value} index={1}>
+//   <Permission />
+// </CustomTabPanel> */}

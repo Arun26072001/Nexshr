@@ -21,6 +21,7 @@ export default function LeaveRecords() {
     const url = process.env.REACT_APP_API_URL;
     const { data, whoIs } = useContext(EssentialValues);
     const [empName, setEmpName] = useState("");
+    const [selectedFilter, setSelectedFilter] = useState("all");
     const [filterLeaveRequests, setFilterLeaveRequests] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [leaveRequests, setLeaveRequests] = useState({});
@@ -149,6 +150,38 @@ export default function LeaveRecords() {
             }
         }
     }, [state]);
+
+    const getFilteredLeaveData = () => {
+        if (selectedFilter === "all") return filterLeaveRequests.leaveData;
+
+        switch (selectedFilter) {
+            case "approvedLeave":
+                return filterLeaveRequests.leaveData?.filter(l => l.status === "approved");
+            case "upcomingLeave":
+                return filterLeaveRequests.leaveData?.filter(l => new Date(l.fromDate) > new Date());
+            case "peopleOnLeave":
+                return filterLeaveRequests.leaveData?.filter(l => {
+                    const now = new Date();
+                    return new Date(l.fromDate) <= now && new Date(l.toDate) >= now;
+                });
+            case "pendingRequests":
+                return filterLeaveRequests.leaveData?.filter(l => l.status === "pending");
+            case "approvedRequests":
+                return filterLeaveRequests.leaveData?.filter(l => l.status === "approved");
+            case "rejectedRequests":
+                return filterLeaveRequests.leaveData?.filter(l => l.status === "rejected");
+            default:
+                return filterLeaveRequests.leaveData;
+        }
+    };
+
+    useEffect(() => {
+        const requests = getFilteredLeaveData();
+        setLeaveRequests((pre) => ({
+            ...pre,
+            leaveData: requests
+        }))
+    }, [selectedFilter]);
 
     const getLeaveData = async () => {
         setIsLoading(true);
@@ -292,72 +325,77 @@ export default function LeaveRecords() {
                 </div>
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
-                        {/* Leave taken */}
-                        <div className="timeLogBox d-flex justify-content-center" >
+                        <div
+                            className="timeLogBox d-flex justify-content-center"
+                            title="Leave taken"
+                            onClick={() => setSelectedFilter("approvedLeave")}
+                            style={{ cursor: "pointer" }}
+                        >
                             <div className="d-flex flex-column">
-                                <div className="leaveDays">
-                                    {leaveRequests?.approvedLeave || 0} Days
-                                </div>
-                                <div className="leaveDaysDesc">
-                                    Leave taken
-                                </div>
+                                <div className="leaveDays">{filterLeaveRequests?.approvedLeave || 0} Days</div>
+                                <div className="leaveDaysDesc">Leave taken</div>
                             </div>
                         </div>
 
-                        {/* Upcoming leave */}
-                        <div className="timeLogBox d-flex justify-content-center" >
+                        <div
+                            className="timeLogBox d-flex justify-content-center"
+                            title="Upcoming leave"
+                            onClick={() => setSelectedFilter("upcomingLeave")}
+                            style={{ cursor: "pointer" }}
+                        >
                             <div className="d-flex flex-column">
-                                <div className="leaveDays">
-                                    {leaveRequests?.upcomingLeave || 0} Days
-                                </div>
-                                <div className="leaveDaysDesc">
-                                    Upcoming leave
-                                </div>
-                            </div>
-                        </div>
-                        {/* People on leave */}
-                        <div className="timeLogBox d-flex justify-content-center" >
-                            <div className="d-flex flex-column">
-                                <div className="leaveDays">
-                                    {leaveRequests?.peopleOnLeave?.length || 0} <PersonRoundedIcon />
-                                </div>
-                                <div className="leaveDaysDesc">
-                                    On Leave
-                                </div>
+                                <div className="leaveDays">{filterLeaveRequests?.upcomingLeave || 0} Days</div>
+                                <div className="leaveDaysDesc">Upcoming leave</div>
                             </div>
                         </div>
 
-                        {/* Pending request */}
-                        <div className="timeLogBox d-flex justify-content-center" >
+                        <div
+                            className="timeLogBox d-flex justify-content-center"
+                            title="People currently on leave"
+                            onClick={() => setSelectedFilter("peopleOnLeave")}
+                            style={{ cursor: "pointer" }}
+                        >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.pendingRequests?.length || 0}
+                                    {filterLeaveRequests?.peopleOnLeave?.length || 0} <PersonRoundedIcon />
                                 </div>
-                                <div className="leaveDaysDesc">
-                                    Pending request
-                                </div>
+                                <div className="leaveDaysDesc">On Leave</div>
                             </div>
                         </div>
-                         {/* Approved request */}
-                        <div className="timeLogBox d-flex justify-content-center" >
+
+                        <div
+                            className="timeLogBox d-flex justify-content-center"
+                            title="Pending leave requests"
+                            onClick={() => setSelectedFilter("pendingRequests")}
+                            style={{ cursor: "pointer" }}
+                        >
                             <div className="d-flex flex-column">
-                                <div className="leaveDays">
-                                    {leaveRequests?.approvedRequests?.length || 0} 
-                                </div>
-                                <div className="leaveDaysDesc">
-                                    Approved request
-                                </div>
+                                <div className="leaveDays">{filterLeaveRequests?.pendingRequests?.length || 0}</div>
+                                <div className="leaveDaysDesc">Pending request</div>
                             </div>
                         </div>
-                         {/* Rejected request */}
-                        <div className="timeLogBox d-flex justify-content-center" >
+
+                        <div
+                            className="timeLogBox d-flex justify-content-center"
+                            title="Approved leave requests"
+                            onClick={() => setSelectedFilter("approvedRequests")}
+                            style={{ cursor: "pointer" }}
+                        >
                             <div className="d-flex flex-column">
-                                <div className="leaveDays">
-                                    {leaveRequests?.rejectedRequests?.length || 0} 
-                                </div>
-                                <div className="leaveDaysDesc">
-                                    Rejected request
-                                </div>
+                                <div className="leaveDays">{filterLeaveRequests?.approvedRequests?.length || 0}</div>
+                                <div className="leaveDaysDesc">Approved request</div>
+                            </div>
+                        </div>
+
+                        <div
+                            className="timeLogBox d-flex justify-content-center"
+                            title="Rejected leave requests"
+                            onClick={() => setSelectedFilter("rejectedRequests")}
+                            style={{ cursor: "pointer" }}
+                        >
+                            <div className="d-flex flex-column">
+                                <div className="leaveDays">{filterLeaveRequests?.rejectedRequests?.length || 0}</div>
+                                <div className="leaveDaysDesc">Rejected request</div>
                             </div>
                         </div>
                     </div>
@@ -366,7 +404,7 @@ export default function LeaveRecords() {
                 {/* Leave Table */}
                 {
                     isLoading ? <Skeleton
-                        sx={{ bgcolor: 'grey.500' }}
+                        sx={{ bgcolor: 'grey.500', margin: "10px 0px" }}
                         variant="rectangular"
                         width={"100%"}
                         height={"50vh"}

@@ -21,7 +21,6 @@ import LeaveDetails from '../Administration/LeaveDetails';
 import WFHRequestForm from './WFHRequestForm';
 import WFHRequests from '../workfromhome/WFHRequests';
 import EmailTemplates from './EmailTemplates';
-import UnpaidRequest from '../leave/UnpaidRequest';
 import Holiday from '../HolidaysPicker';
 import LatePunch from '../attendance/LatePunch';
 
@@ -31,9 +30,9 @@ const JobDesk = React.lazy(() => import('./Jobdesk'));
 const Employee = React.lazy(() => import('./Employee'));
 // const Employees = React.lazy(() => import('./Employees'));
 // const AttendanceCalendar = React.lazy(() => import('./AttendanceCalendar'));
-const Request = React.lazy(() => import('../attendance/Request'));
+// const Request = React.lazy(() => import('../attendance/Request'));
+// const Details = React.lazy(() => import('../attendance/Details'));
 const Dailylog = React.lazy(() => import('../attendance/Dailylog'));
-const Details = React.lazy(() => import('../attendance/Details'));
 const Summary = React.lazy(() => import('../attendance/Summary'));
 // const Status = React.lazy(() => import('../leave/Status'));
 // const LeaveSummary = React.lazy(() => import('../leave/Summary'));
@@ -445,7 +444,7 @@ export default function HRMDashboard() {
             checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, isAddTask, setIsAddTask,
             handleAddTask, selectedProject, dateRangeValue, setDateRangeValue, handleLateLogin, isLateLogin
         }}>
-            <Routes >
+            <Routes>
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
@@ -457,7 +456,7 @@ export default function HRMDashboard() {
                     <Route path="/holiday" element={<Holiday />} />
                     <Route path="/raise-bugs" element={<div className='text-center' style={{ justifyContent: "center", flexDirection: "row" }}>
                         <h2>If you encounter any bugs, please report them using the sheet below.</h2>
-                        <button className='button' >
+                        <button className='button'>
                             <a href={"https://docs.google.com/forms/d/e/1FAIpQLSdaYXBb_xrwIq_oZYGqyZh7Ez9n8Be6v5uLvf5PziaUJULf8g/viewform"} target="_blank" rel="noreferrer noopener" >
                                 Raise your bug
                             </a>
@@ -484,10 +483,10 @@ export default function HRMDashboard() {
                     <Route path="/wfh-request/edit/:id" element={<WFHRequestForm type={"edit"} />} />
                     <Route path="attendance/*" element={
                         <Routes>
-                            <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                            {/* <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                            <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} /> */}
                             <Route path="late-punch" element={<LatePunch />} />
-                            <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
                         </Routes>
                     }>
