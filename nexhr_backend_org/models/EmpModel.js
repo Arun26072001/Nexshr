@@ -21,7 +21,7 @@ var employeeSchema = new mongoose.Schema({
   clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: "clockIns" }],
   admin: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   gender: { type: String },
-  monthlyPermissions: { type: Number, default: 2 },
+  monthlyPermissions: { type: Number }, // Now set from company policy
   code: { type: String },
   isLogin: { type: Boolean, default: false },
   serialNo: { type: String },
@@ -45,7 +45,7 @@ var employeeSchema = new mongoose.Schema({
   employmentType: { type: String },
   benefits: [{ type: String }],
   isPermanentWFH: { type: Boolean },
-  warnings: { type: Number, default: 3 },
+  warnings: { type: Number }, // Now set from company policy
   isDeleted: { type: Boolean, default: false },
   emergencyContacts: [
     {

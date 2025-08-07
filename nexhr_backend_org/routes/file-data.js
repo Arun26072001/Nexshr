@@ -55,7 +55,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                 }
             }
 
-            fs.unlinkSync(filePath); // Delete file after processing
+            fs.unlinkSync(  filePath); // Delete file after processing
 
             const today = new Date();
             const startOfDay = new Date(today.setHours(0, 0, 0, 0));

@@ -14,6 +14,7 @@ const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const { Holiday } = require('../models/HolidayModel');
 const { TimePattern } = require('../models/TimePatternModel');
+const { getLeavePolicy } = require('../services/policyService');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, deadLineTask = []) {
@@ -462,18 +463,18 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
       return Array.from(setValues).map((emp) => JSON.parse(emp))
     }
     const uniqueEmps = filterUniqeData(employees);
+    console.log("teamEmps", uniqueEmps);
 
     // Fetch team members' basic info
     const colleagues = await Employee.find(
       { _id: { $in: uniqueEmps }, isDeleted: false },
       "FirstName LastName Email phone profile"
     ).lean();
-
     // Fetch leave applications within the date range
     let teamLeaves = await LeaveApplication.find({
       employee: { $in: uniqueEmps },
       isDeleted: false,
-      leaveType: { $nin: ["Unpaid Leave (LWP)"] },
+      // leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       $or: [
         {
           fromDate: { $lte: endOfMonth },
@@ -483,7 +484,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     })
       .populate("employee", "FirstName LastName profile")
       .lean(); // lean = returns plain JS objects, faster
-
+    console.log("teamLeaves", teamLeaves)
     // Map prescription URLs
     teamLeaves = teamLeaves.map(formatLeaveData)
     // filter leave from unpaid and permission
@@ -586,7 +587,6 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
           select: "teamName"
         }
       }).lean().exec();
-    console.log("leave", leaveData)
 
     return res.status(200).send(leaveData);
   } catch (error) {
@@ -1000,10 +1000,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
   try {
     const companyId = getCompanyIdFromToken(req.headers["authorization"]) || "";
     const { empId } = req.params;
+    
     // check is valid id
     if (!checkValidObjId(empId)) {
       return res.status(400).send({ error: "Invalid or missing Employee Id" })
-    }
+    } 
     // get user authorization account
     const decodedData = jwt.verify(req.headers["authorization"], process.env.ACCCESS_SECRET_KEY);
     let accountLevel;
@@ -1031,7 +1032,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
     const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
 
-    // ✅ Check team leave count
+    // ✅ Check team leave count using dynamic policy
+    const leavePolicy = await getLeavePolicy(companyId);
+    const teamLeaveLimit = leavePolicy.teamLeaveLimit || 2;
+    
     const team = await Team.findOne({ employees: empId, isDeleted: false }, "employees");
     if (team?.employees?.length) {
       const overlappingleaveApps = await LeaveApplication.find({
@@ -1042,8 +1046,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         toDate: { $gte: fromDate },
       });
 
-      if (overlappingleaveApps.length >= 2) {
-        return res.status(400).json({ error: "Already two members are approved for leave in this time period." });
+      if (overlappingleaveApps.length >= teamLeaveLimit) {
+        return res.status(400).json({ error: `Already ${teamLeaveLimit} members are approved for leave in this time period.` });
       }
     }
 

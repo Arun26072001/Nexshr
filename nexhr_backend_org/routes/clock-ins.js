@@ -12,6 +12,7 @@ const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
+const { getAttendancePolicy } = require("../services/policyService");
 
 router.post("/verify_completed_workinghour", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -486,7 +487,11 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
               </body>
             </html>`;
                 } else {
-                    // Check for existing approved permissions this month
+                    // ✅ Check for existing approved permissions this month using dynamic policy
+                    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+                    const attendancePolicy = await getAttendancePolicy(companyId);
+                    const monthlyPermissionLimit = attendancePolicy.monthlyPermissionLimit || 2;
+                    
                     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
                     const empPermissions = await LeaveApplication.find({
                         employee: emp._id,
@@ -495,7 +500,7 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
                         status: "approved"
                     });
 
-                    if (empPermissions.length >= 2) {
+                    if (empPermissions.length >= monthlyPermissionLimit) {
                         // Convert to Half-day LOP after 2 permissions
                         leaveAppData = {
                             ...baseLeaveData,

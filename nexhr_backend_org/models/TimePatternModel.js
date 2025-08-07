@@ -14,6 +14,8 @@ var timePatternSchema = new mongoose.Schema({
     isDeleted: { type: Boolean, default: false },
 }, { timestamps: true })
 
+require("../ModelChangeEvents/timePatternHook")(timePatternSchema);
+
 var TimePattern = mongoose.model("TimePattern", timePatternSchema);
 
 const TimePatternValidation = Joi.object({

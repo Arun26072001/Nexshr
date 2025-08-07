@@ -10,6 +10,7 @@ const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
 const { LeaveApplication } = require("../models/LeaveAppModel");
+const { getLeavePolicy } = require("../services/policyService");
 const router = express.Router();
 
 function generateWfhEmail(empData, fromDateValue, toDateValue, reason, type) {
@@ -248,7 +249,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(400).send({ error: "You can't apply WFH, because you applied leave during this period." })
         }
 
-        // check has more than two team members in wfh
+        // ✅ Check team WFH count using dynamic policy
+        const leavePolicy = await getLeavePolicy(companyId);
+        const teamWfhLimit = leavePolicy.teamWfhLimit || 2;
+        
         const team = await Team.findOne({ employees: id }, "employees").exec();
         if (team && team.employees.length > 0) {
             const wfhEmps = await WFHApplication.find({
@@ -260,8 +264,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 toDate: { $gte: fromDateObj }
             })
 
-            if (wfhEmps.length === 2) {
-                return res.status(400).send({ error: "Already two members are approved for WFH in this time period." })
+            if (wfhEmps.length >= teamWfhLimit) {
+                return res.status(400).send({ error: `Already ${teamWfhLimit} members are approved for WFH in this time period.` })
             }
         }
 
@@ -860,7 +864,11 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const { approvers, fromDate, toDate, status, employee } = req.body;
         let updatedApprovers = approvers;
         if (status === "approved") {
-            // ✅ Check team WFH count
+            // ✅ Check team WFH count using dynamic policy
+            const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+            const leavePolicy = await getLeavePolicy(companyId);
+            const teamWfhLimit = leavePolicy.teamWfhLimit || 2;
+            
             const team = await Team.findOne({ employees: employee }, "employees");
             if (team?.employees?.length) {
                 const overlappingWFHs = await WFHApplication.find({
@@ -871,8 +879,8 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     toDate: { $gte: fromDate },
                 });
 
-                if (overlappingWFHs.length >= 2) {
-                    return res.status(400).json({ error: "Already two members are approved for WFH in this time period." });
+                if (overlappingWFHs.length >= teamWfhLimit) {
+                    return res.status(400).json({ error: `Already ${teamWfhLimit} members are approved for WFH in this time period.` });
                 }
             }
             if (approvers && Object.keys(approvers).length > 0) {
@@ -904,7 +912,11 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!allPending) {
             const employeeId = wfhApp.employee;
 
-            // ✅ Check team WFH count
+            // ✅ Check team WFH count using dynamic policy
+            const companyIdForPolicy = getCompanyIdFromToken(req.headers["authorization"]);
+            const leavePolicy = await getLeavePolicy(companyIdForPolicy);
+            const teamWfhLimit = leavePolicy.teamWfhLimit || 2;
+            
             const team = await Team.findOne({ employees: employeeId }, "employees");
             if (team?.employees?.length) {
                 const overlappingWFHs = await WFHApplication.find({
@@ -915,8 +927,8 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     toDate: { $gte: fromDate },
                 });
 
-                if (overlappingWFHs.length >= 2) {
-                    return res.status(400).json({ error: "Already two members are approved for WFH in this time period." });
+                if (overlappingWFHs.length >= teamWfhLimit) {
+                    return res.status(400).json({ error: `Already ${teamWfhLimit} members are approved for WFH in this time period.` });
                 }
             }
 
