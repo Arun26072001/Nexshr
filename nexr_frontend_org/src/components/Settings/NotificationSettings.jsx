@@ -43,7 +43,7 @@ const NotificationSettings = () => {
       // icon: '🏠',
       color: 'black'
     },
-    employeeOnboarding: {
+    employeeManagement: {
       title: 'Employee Onboarding',
       description: 'Welcome emails, credential updates, and onboarding progress',
       // icon: '👋',
@@ -141,7 +141,7 @@ const NotificationSettings = () => {
   };
 
   const calculateGlobalToggle = (settingsData) => {
-    const modules = ['leaveManagement', 'wfhManagement', 'employeeOnboarding',
+    const modules = ['leaveManagement', 'wfhManagement', 'employeeManagement',
       'attendanceManagement', 'taskManagement', 'holidayNotifications', 'administrative'];
 
     let enabledCount = 0;

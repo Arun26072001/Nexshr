@@ -1,9 +1,10 @@
 // hooks/employeeHooks.js
 
+const { sendMail, pushNotification } = require("../Reuseable_functions/notifyFunction");
+const { getNotificationSettings } = require("../services/NotificationService");
+
 module.exports = function attachEmployeeHooks(Employee, schema) {
     const schedule = require("node-schedule");
-    const sendMail = require("../routes/mailSender");
-    const { sendPushNotification } = require("../auth/PushNotification"); // Make sure this exists
 
     function isValidDate(value) {
         const date = new Date(value);
@@ -11,7 +12,7 @@ module.exports = function attachEmployeeHooks(Employee, schema) {
     }
 
     function scheduleAnnualLeaveRenewal(emp) {
-        const { annualLeaveYearStart } = emp;
+        const { annualLeaveYearStart, company } = emp;
         if (!annualLeaveYearStart || !isValidDate(annualLeaveYearStart)) return;
 
         const dateObj = new Date(annualLeaveYearStart);
@@ -40,23 +41,28 @@ module.exports = function attachEmployeeHooks(Employee, schema) {
             const title = "Your annual leave entitlement has been renewed.";
             const message = `Your annual leave days have been successfully renewed as part of the yearly leave cycle. You can now view and utilize your updated leave balance. Please contact HR if you have any questions.`;
 
-            if (emp?.fcmToken) {
-                await sendPushNotification({ token: emp.fcmToken, title, body: message });
-            }
+            await Promise.all([
+                emp?.fcmToken &&
+                pushNotification(company, "employee", "annualLeaveRenewed", {
+                    tokens: emp.fcmToken,
+                    title,
+                    body: message,
+                    path: "/leave/balance",
+                    data: { employeeId: emp._id }
+                }),
 
-            if (emp?.Email) {
-                await sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: emp.Email,
-                    Subject: title,
-                    TextBody: message,
-                });
-            }
+                emp?.Email &&
+                sendMail(company, "employee", "annualLeaveRenewed", {
+                    to: emp.Email,
+                    subject: title,
+                    html: `<p>${message}</p>`
+                })
+            ]);
         });
     }
 
     function scheduleBirthdayGreeting(emp) {
-        const { DOB } = emp;
+        const { DOB, company } = emp;
         if (!DOB || !isValidDate(DOB)) return;
 
         const dob = new Date(DOB);
@@ -67,23 +73,28 @@ module.exports = function attachEmployeeHooks(Employee, schema) {
             const title = "🎉 Happy Birthday!";
             const message = `Wishing you a fantastic birthday filled with joy and success. Have a great year ahead!`;
 
-            if (emp?.fcmToken) {
-                await sendPushNotification({ token: emp.fcmToken, title, body: message });
-            }
+            await Promise.all([
+                emp?.fcmToken &&
+                pushNotification(company, "employee", "birthday", {
+                    tokens: emp.fcmToken,
+                    title,
+                    body: message,
+                    path: "/profile",
+                    data: { employeeId: emp._id }
+                }),
 
-            if (emp?.Email) {
-                await sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: emp.Email,
-                    Subject: title,
-                    TextBody: message,
-                });
-            }
+                emp?.Email &&
+                sendMail(company, "employee", "birthday", {
+                    to: emp.Email,
+                    subject: title,
+                    html: `<p>${message}</p>`
+                })
+            ]);
         });
     }
 
     function scheduleWorkAnniversaryGreeting(emp) {
-        const { DOJ } = emp;
+        const { DOJ, company } = emp;
         if (!DOJ || !isValidDate(DOJ)) return;
 
         const doj = new Date(DOJ);
@@ -94,33 +105,48 @@ module.exports = function attachEmployeeHooks(Employee, schema) {
             const title = "🎉 Happy Work Anniversary!";
             const message = `Congratulations on your work anniversary! Thank you for being an integral part of the team.`;
 
-            if (emp?.fcmToken) {
-                await sendPushNotification({ token: emp.fcmToken, title, body: message });
-            }
+            await Promise.all([
+                emp?.fcmToken &&
+                pushNotification(company, "employee", "workAnniversary", {
+                    tokens: emp.fcmToken,
+                    title,
+                    body: message,
+                    path: "/profile",
+                    data: { employeeId: emp._id }
+                }),
 
-            if (emp?.Email) {
-                await sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: emp.Email,
-                    Subject: title,
-                    TextBody: message,
-                });
-            }
+                emp?.Email &&
+                sendMail(company, "employee", "workAnniversary", {
+                    to: emp.Email,
+                    subject: title,
+                    html: `<p>${message}</p>`
+                })
+            ]);
         });
     }
 
     schema.post("save", async function (doc) {
         const emp = doc.toObject();
+        const { employeeManagement } = await getNotificationSettings(emp.company);
         scheduleAnnualLeaveRenewal(emp);
-        scheduleBirthdayGreeting(emp);
-        scheduleWorkAnniversaryGreeting(emp);
+        if (employeeManagement["birthday"]) {
+            scheduleBirthdayGreeting(emp);
+        }
+        if (employeeManagement["workAnniversary"]) {
+            scheduleWorkAnniversaryGreeting(emp);
+        }
     });
 
     schema.post("findOneAndUpdate", async function (doc) {
         if (!doc) return;
         const emp = doc.toObject();
+        const { employeeManagement } = await getNotificationSettings(emp.company);
         scheduleAnnualLeaveRenewal(emp);
-        scheduleBirthdayGreeting(emp);
-        scheduleWorkAnniversaryGreeting(emp);
+        if (employeeManagement["birthday"]) {
+            scheduleBirthdayGreeting(emp);
+        }
+        if (employeeManagement["workAnniversary"]) {
+            scheduleWorkAnniversaryGreeting(emp);
+        }
     });
 };

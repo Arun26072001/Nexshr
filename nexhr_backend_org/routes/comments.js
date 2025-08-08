@@ -2,9 +2,8 @@ const express = require("express");
 const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { Task } = require("../models/TaskModel");
 const { commentValidation, Comment } = require("../models/CommentModel");
-const sendMail = require("./mailSender");
-const { checkValidObjId, errorCollector } = require("../Reuseable_functions/reusableFunction");
-const { sendPushNotification } = require("../auth/PushNotification");
+const { checkValidObjId, errorCollector, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
+const { sendMail, pushNotification } = require("../Reuseable_functions/notifyFunction");
 const { Employee } = require("../models/EmpModel");
 const router = express.Router();
 
@@ -67,25 +66,53 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // send mail and notification for task assignees
         if (emps?.length > 0) {
-            emps.forEach((emp) => {
+            const emailPromises = emps.map(async (emp) => {
                 const title = `${commentCreator.FirstName + " " + commentCreator.LastName} has commented in ${task.title}`;
-                const message = newComment.comment.replace(/<\/?[^>]+(>|$)/g, '')
+                const message = newComment.comment.replace(/\<\/?[^\>]+(\>|$)/g, '')
+                
                 // send mail 
-                sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: emp.Email,
-                    Subject: title,
-                    TextBody: message
-                })
-                // send notification
-                sendPushNotification({
-                    token: emp.fcmToken,
-                    title,
-                    body: message,
-                    type: "comment",
-                    name: emp.FirstName
-                })
+                await sendMail(
+                    emp?.company?._id || getCompanyIdFromToken(req.headers["authorization"]),
+                    "taskManagement",
+                    "commentNotifications",
+                    {
+                        to: emp.Email,
+                        subject: title,
+                        text: message,
+                        from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                    }
+                );
+                
+                // send push notification
+                if (emp.fcmToken) {
+                    await pushNotification(
+                        emp?.company?._id || getCompanyIdFromToken(req.headers["authorization"]),
+                        "taskManagement",
+                        "commentNotifications",
+                        {
+                            tokens: emp.fcmToken,
+                            title: title,
+                            body: message
+                        }
+                    );
+                }
+
+                // Save notification to employee
+                const notification = {
+                    company: emp?.company?._id || getCompanyIdFromToken(req.headers["authorization"]),
+                    title: title,
+                    message: message
+                };
+                
+                const fullEmp = await Employee.findById(emp._id, "notifications");
+                if (fullEmp) {
+                    fullEmp.notifications = fullEmp.notifications || [];
+                    fullEmp.notifications.push(notification);
+                    await fullEmp.save();
+                }
             });
+            
+            await Promise.all(emailPromises);
         }
 
         return res.send({ message: "comment has been added" })

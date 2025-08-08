@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
 const NotificationSettingsSchema = new mongoose.Schema({
-  companyId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "Company", 
-    required: true, 
-    unique: true 
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Company",
+    required: true,
+    unique: true
   },
-  
+
   // Leave Management Notifications
   leaveManagement: {
     application: { type: Boolean, default: true },
@@ -31,17 +31,16 @@ const NotificationSettingsSchema = new mongoose.Schema({
   },
 
   // Employee Onboarding Notifications
-  employeeOnboarding: {
+  employeeManagement: {
     welcomeEmails: { type: Boolean, default: true },
     credentialUpdates: { type: Boolean, default: true },
     documentReminders: { type: Boolean, default: true },
     onboardingProgress: { type: Boolean, default: true },
     completionNotifications: { type: Boolean, default: true },
     taskAssignments: { type: Boolean, default: true },
-    birthday: {type: Boolean, default: true},
-    workAnniversary: {type: Boolean, default: true}
+    birthday: { type: Boolean, default: true },
+    workAnniversary: { type: Boolean, default: true }
   },
-
   // Attendance Management Notifications
   attendanceManagement: {
     latePunchNotifications: { type: Boolean, default: true },
@@ -51,6 +50,7 @@ const NotificationSettingsSchema = new mongoose.Schema({
     clockInReminders: { type: Boolean, default: true },
     clockOutReminders: { type: Boolean, default: true },
     attendanceAnomalies: { type: Boolean, default: true },
+    noPunchIn: { type: Boolean, default: true },
     monthlyReports: { type: Boolean, default: false }
   },
 
@@ -62,6 +62,7 @@ const NotificationSettingsSchema = new mongoose.Schema({
     deadlineReminders: { type: Boolean, default: true },
     statusUpdates: { type: Boolean, default: true },
     overdueTasks: { type: Boolean, default: true },
+    createProject: { type: Boolean, default: true },
     projectUpdates: { type: Boolean, default: false }
   },
 
@@ -72,6 +73,9 @@ const NotificationSettingsSchema = new mongoose.Schema({
     upcomingHolidays: { type: Boolean, default: true },
     holidayReminders: { type: Boolean, default: false },
     companyEvents: { type: Boolean, default: true }
+  },
+  teamManagement: {
+    welcomeTeamate: { type: Boolean, default: true },
   },
 
   // Administrative Notifications

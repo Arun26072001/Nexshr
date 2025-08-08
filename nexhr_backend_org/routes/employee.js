@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Employee, employeeSchema } = require('../models/EmpModel');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth } = require('../auth/authMiddleware');
-const sendMail = require("./mailSender");
+const { sendMail } = require("../Reuseable_functions/notifyFunction");
 const { RoleAndPermission } = require('../models/RoleModel');
 const { Team } = require('../models/TeamModel');
 const fs = require("fs");
@@ -516,12 +516,17 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     </html>
     `;
 
-    sendMail({
-      From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-      To: Email,
-      Subject: `Welcome to ${inviter.company.CompanyName}`,
-      HtmlBody: htmlContent,
-    });
+    await sendMail(
+      company || inviter.company._id,
+      "employeeManagement",
+      "welcomeEmails",
+      {
+        to: Email,
+        subject: `Welcome to ${inviter.company.CompanyName}`,
+        html: htmlContent,
+        from: `<${process.env.FROM_MAIL}> (Nexshr)`
+      }
+    );
 
     res.status(201).json({ message: "Employee details saved successfully!", employee });
   } catch (err) {
@@ -656,12 +661,17 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         </html>
       `;
 
-      await sendMail({
-        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-        To: employeeData.Email,
-        Subject: "Your Credentials are updated",
-        HtmlBody: htmlContent,
-      });
+      await sendMail(
+        employeeData?.company?._id || getCompanyIdFromToken(req.headers["authorization"]),
+        "employeeManagement",
+        "credentialUpdates",
+        {
+          to: employeeData.Email,
+          subject: "Your Credentials are updated",
+          html: htmlContent,
+          from: `<${process.env.FROM_MAIL}> (Nexshr)`
+        }
+      );
     }
 
     // Update employee

@@ -38,7 +38,7 @@ const EmployeeForm = ({
         "workingTimePattern",
         "annualLeaveYearStart",
         "annualLeaveEntitlement",
-        "monthlyPermissions"
+        // ""
     ];
     const [errors, setErrors] = useState({});
 
@@ -233,7 +233,6 @@ const EmployeeForm = ({
         // if (!employeeObj?.workingTimePattern) newError.workingTimePattern = "Working time pattern is required";
         // if (!employeeObj?.annualLeaveYearStart) newError.annualLeaveYearStart = "AnnualLeaveYearStart date is required";
         // if (!employeeObj?.annualLeaveEntitlement) newError.annualLeaveEntitlement = "Annual leave entitlement is required";
-        // if (!employeeObj?.monthlyPermissions) newError.monthlyPermissions = "Monthly Permission is required"
         // if (!employeeObj?.basicSalary) newError.basicSalary = "Basic salary is required";
         // if (!employeeObj?.bankName) newError.bankName = "Bank name is required";
         // if (!employeeObj?.accountNo) newError.accountNo = "Account number is required";
@@ -261,7 +260,7 @@ const EmployeeForm = ({
         const fieldSections = {
             personal: ["FirstName", "LastName", "gender", "role"],
             contact: ["Email", "Password", "phone"],
-            employment: ["workingTimePattern", "company", "dateOfJoining", "employmentType", "monthlyPermissions", "Annual Leave Year Start", "code"],
+            employment: ["workingTimePattern", "company", "dateOfJoining", "employmentType", "Annual Leave Year Start", "code"],
             job: ["department", "position"],
             // financial: ["basicSalary", "bankName", "accountNo", "accountHolderName", "IFSCcode"]
         };
@@ -738,7 +737,7 @@ const EmployeeForm = ({
                         </div>
 
                         <div className="row d-flex justify-content-center my-3">
-                            <div className="col-lg-4">
+                            <div className="col-lg-6">
                                 <div className="inputLabel">Public Holidays by</div>
                                 <SelectPicker
                                     readOnly={isView}
@@ -760,7 +759,7 @@ const EmployeeForm = ({
                                     data={countries?.map(item => ({ label: item.name, value: item.name }))}
                                 />
                             </div>
-                            <div className="col-lg-4">
+                            <div className="col-lg-6">
                                 <div className="inputLabel">Warning Limit</div>
                                 <input
                                     readOnly={isView}
@@ -777,7 +776,7 @@ const EmployeeForm = ({
                                     <div className="text-center text-danger">{errors?.warnings}</div>
                                 )}
                             </div>
-                            <div className="col-lg-4">
+                            {/* <div className="col-lg-4">
                                 <div className="inputLabel important">Monthly Permissions</div>
                                 <input
                                     readOnly={isView}
@@ -793,7 +792,7 @@ const EmployeeForm = ({
                                 {errors?.monthlyPermissions && (
                                     <div className="text-center text-danger">{errors?.monthlyPermissions}</div>
                                 )}
-                            </div>
+                            </div> */}
                         </div>
 
                         <div className="row d-flex justify-content-center">

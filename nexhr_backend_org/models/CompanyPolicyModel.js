@@ -1,73 +1,75 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
 
-const CompanyPolicySchema = new mongoose.Schema({
-  company: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Company',
-    required: true,
-    unique: true
-  },
-
-  // Attendance & Time Settings
-  attendance: {
-    monthlyPermissionLimit: { type: Number, default: 2, min: 0, max: 10 },
-    permissionHourLimit: { type: Number, default: 120, min: 30, max: 480 }, // minutes
-    lateLoginPenaltyThreshold: { type: Number, default: 240, min: 60, max: 480 }, // minutes for half-day LOP
-    permissionGrantDuration: { type: Number, default: 2, min: 1, max: 8 }, // hours
-    warningLimit: { type: Number, default: 3, min: 1, max: 10 },
-    overtimeLimit: { type: Number, default: 12, min: 8, max: 16 }, // hours
-    defaultStartTime: { type: String, default: "9:00" },
-  },
-
-  // Leave Policy Settings
-  leave: {
-    teamLeaveLimit: { type: Number, default: 2, min: 1, max: 5 }, // max concurrent leaves
-    teamWfhLimit: { type: Number, default: 2, min: 1, max: 5 },   // max concurrent WFH
-    currentDayPendingApplication: { type: String, default: "reject" },
-    autoRejectTime: { type: String, default: "23:59" }, // daily processing time
-    annualLeaveDefault: { type: Number, default: 14, min: 5, max: 30 },
-    sickLeaveAdvanceApplication: { type: Boolean, default: true }, // allow same day/tomorrow sick leave
-    casualLeaveAdvanceApplication: { type: Boolean, default: false }, // require advance application
-    medLeavePresc: { type: Boolean, default: false },
-    requireHRApproval: { type: Boolean, default: true },
-    requireTeamHigherAuthApproval: { type: Boolean, default: true },
-    autoApprovePermissions: { type: Boolean, default: true },
-  },
-
-  // Payroll Settings
-  payroll: {
-    generationDate: { type: Date }, // day of month
-    salaryCalculationMethod: {
-      type: String,
-      enum: ['calendar_days', 'working_days'],
-      default: 'working_days'
+  const CompanyPolicySchema = new mongoose.Schema({
+    company: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Company',
+      required: true,
+      unique: true
     },
-    workingHoursPerDay: { type: Number, default: 8, min: 4, max: 12 }
-  },
 
-  // Notification & Processing Settings
-  notifications: {
-    reminderFrequency: {
-      type: String,
-      enum: ['daily', 'weekly', 'disabled'],
-      default: 'daily'
+    // Attendance & Time Settings
+    attendance: {
+      monthlyPermissionLimit: { type: Number, default: 2, min: 0, max: 10 },
+      permissionHourLimit: { type: Number, default: 120, min: 30, max: 480 }, // minutes
+      lateLoginPenaltyThreshold: { type: Number, default: 240, min: 60, max: 480 }, // minutes for half-day LOP
+      defaultStartTime: { type: String, default: "9:00" },
     },
-    autoProcessingEnabled: { type: Boolean, default: true },
-    emailReminders: { type: Boolean, default: true },
-    pushNotifications: { type: Boolean, default: true }
-  },
 
-  // System Settings
-  system: {
-    timezone: { type: String, default: "Asia/Kolkata" },
-    dateFormat: { type: String, default: "DD/MM/YYYY" },
-    timeFormat: { type: String, enum: ['12', '24'], default: '24' },
-    weekStartsOn: { type: String, enum: ['Sunday', 'Monday'], default: 'Monday' }
-  }
-}, {
-  timestamps: true
-});
+    // Leave Policy Settings
+    leave: {
+      teamLeaveLimit: { type: Number, default: 2, min: 1, max: 100 }, // max concurrent leaves
+      teamWfhLimit: { type: Number, default: 2, min: 1, max: 100 },   // max concurrent WFH
+      currentDayPendingApplication: { type: String, default: "reject" },
+      autoRejectTime: { type: String, default: "23:59" }, // daily processing time
+      annualLeaveDefault: { type: Number, default: 14, min: 5, max: 30 },
+      sickLeaveAdvanceApplication: { type: Boolean, default: true }, // allow same day/tomorrow sick leave
+      casualLeaveAdvanceApplication: { type: Boolean, default: false }, // require advance application
+      medLeavePresc: { type: Boolean, default: false },
+      requireHRApproval: { type: Boolean, default: true },
+      requireTeamHigherAuthApproval: { type: Boolean, default: true },
+      autoApprovePermissions: { type: Boolean, default: true },
+    },
+
+    // Payroll Settings
+    payroll: {
+      generationDate: { type: Date }, // day of month
+      salaryCalculationMethod: {
+        type: String,
+        enum: ['calendar_days', 'working_days'],
+        default: 'working_days'
+      },
+      workingHoursPerDay: { type: Number, default: 8, min: 4, max: 12 }
+    },
+    // Notification \u0026 Processing Settings
+    notifications: {
+      reminderFrequency: {
+        type: String,
+        enum: ['daily', 'weekly', 'disabled'],
+        default: 'daily'
+      },
+      // workingday: Mon-Fri only, everyday: all days
+      reminderDaysMode: {
+        type: String,
+        enum: ['workingday', 'everyday'],
+        default: 'workingday'
+      },
+      autoProcessingEnabled: { type: Boolean, default: true },
+      emailReminders: { type: Boolean, default: true },
+      pushNotifications: { type: Boolean, default: true }
+    },
+
+    // System Settings
+    system: {
+      timezone: { type: String, default: "Asia/Kolkata" },
+      dateFormat: { type: String, default: "DD/MM/YYYY" },
+      timeFormat: { type: String, enum: ['12', '24'], default: '24' },
+      weekStartsOn: { type: String, enum: ['Sunday', 'Monday'], default: 'Monday' }
+    }
+  }, {
+    timestamps: true
+  });
 
 require("../ModelChangeEvents/companySettingsHook")(CompanyPolicySchema);
 
@@ -84,14 +86,12 @@ const CompanyPolicyValidation = Joi.object({
     monthlyPermissionLimit: Joi.number().min(0).max(10).optional(),
     permissionHourLimit: Joi.number().min(30).max(480).optional(),
     lateLoginPenaltyThreshold: Joi.number().min(60).max(480).optional(),
-    permissionGrantDuration: Joi.number().min(1).max(8).optional(),
-    warningLimit: Joi.number().min(1).max(10).optional(),
-    overtimeLimit: Joi.number().min(8).max(16).optional(),
     defaultStartTime: Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
   }).optional(),
   leave: Joi.object({
     teamLeaveLimit: Joi.number().min(1).max(5).optional(),
     teamWfhLimit: Joi.number().min(1).max(5).optional(),
+    currentDayPendingApplication: Joi.string().valid('reject', 'no_action', 'auto_approve').optional(),
     autoRejectTime: Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
     annualLeaveDefault: Joi.number().min(5).max(30).optional(),
     sickLeaveAdvanceApplication: Joi.boolean().optional(),
@@ -108,6 +108,7 @@ const CompanyPolicyValidation = Joi.object({
   }).optional(),
   notifications: Joi.object({
     reminderFrequency: Joi.string().valid('daily', 'weekly', 'disabled').optional(),
+    reminderDaysMode: Joi.string().valid('workingday', 'everyday').optional(),
     autoProcessingEnabled: Joi.boolean().optional(),
     emailReminders: Joi.boolean().optional(),
     pushNotifications: Joi.boolean().optional()

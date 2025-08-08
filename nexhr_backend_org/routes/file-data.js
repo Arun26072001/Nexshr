@@ -4,7 +4,7 @@ const router = express.Router();
 const XLSX = require("xlsx");
 const { upload } = require("./imgUpload");
 const fs = require("fs");
-const sendMail = require("./mailSender");
+const { sendMail } = require("../Reuseable_functions/notifyFunction");
 const { Employee } = require("../models/EmpModel");
 const { ClockIns } = require("../models/ClockInsModel");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
@@ -130,12 +130,17 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                     </body>
                                 </html>`;
 
-                            sendMail({
-                                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                                To: emp.Email,
-                                Subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
-                                HtmlBody: htmlContent,
-                            })
+                            await sendMail(
+                                companyId,
+                                "leaveManagement",
+                                "application",
+                                {
+                                    to: emp.Email,
+                                    subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
+                                    html: htmlContent,
+                                    from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                                }
+                            );
                             continue;
                         }
                     } else {
@@ -191,12 +196,17 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                               </body>
                             </html>`;
 
-                            sendMail({
-                                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                                To: emp.Email,
-                                Subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
-                                HtmlBody: htmlContent,
-                            })
+                            await sendMail(
+                                companyId,
+                                "leaveManagement",
+                                "application",
+                                {
+                                    to: emp.Email,
+                                    subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
+                                    html: htmlContent,
+                                    from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                                }
+                            );
                             continue;
                         } catch (error) {
                             await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
@@ -249,13 +259,18 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                           </body>
                         </html>`;
 
-                        sendMail({
-                            From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                            To: emp.Email,
-                            Subject: "Incomplete Working Hours Alert",
-                            HtmlBody: emailHtml,
-                            TextBody: "Your working hours are incomplete. Please review your schedule."
-                        });
+                        await sendMail(
+                            companyId,
+                            "attendanceManagement",
+                            "attendanceAnomalies",
+                            {
+                                to: emp.Email,
+                                subject: "Incomplete Working Hours Alert",
+                                html: emailHtml,
+                                text: "Your working hours are incomplete. Please review your schedule.",
+                                from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                            }
+                        );
                     }
                 }
             }
@@ -361,12 +376,17 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                     </html>
                   `;
 
-                    sendMail({
-                        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                        To: addEmp.Email,
-                        Subject: `Welcome To ${inviter.company.CompanyName}`,
-                        HtmlBody: htmlContent,
-                    });
+                    await sendMail(
+                        inviter?.company?._id,
+                        "employeeManagement",
+                        "welcomeEmails",
+                        {
+                            to: addEmp.Email,
+                            subject: `Welcome To ${inviter.company.CompanyName}`,
+                            html: htmlContent,
+                            from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                        }
+                    );
                 } catch (error) {
                     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
                     console.error(error);

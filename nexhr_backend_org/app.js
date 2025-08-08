@@ -149,7 +149,7 @@ app.post("/push-notification", sendPushNotification);
 app.post("/ask-reason-for-delay", askReasonForDelay);
 
 // delete permanently soft deleted docs
-deleteOldSoftDeletedDocs()
+deleteOldSoftDeletedDocs();
 
 // Start Server
 const port = process.env.PORT;

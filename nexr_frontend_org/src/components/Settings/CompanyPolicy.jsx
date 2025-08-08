@@ -11,7 +11,6 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Alert from '@mui/material/Alert';
-import Chip from '@mui/material/Chip';
 import './SettingsStyle.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -24,7 +23,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import PaymentIcon from '@mui/icons-material/Payment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { DatePicker, InputNumber } from 'rsuite';
+import { DatePicker, InputNumber, TimePicker } from 'rsuite';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -141,19 +140,63 @@ export default function CompanyPolicy() {
     fetchPolicySettings();
   }, []);
 
-  const renderTextField = (section, field, label, type = 'number', helperText = '') => (
-    <TextField
-      fullWidth
-      type={type}
-      value={policySettings?.[section]?.[field]}
-      onChange={(e) => handleInputChange(section, field, type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
-      helperText={helperText}
-      margin="normal"
-      size="small"
-    />
-  );
+  const renderTextField = (section, field, label, type = 'number', helperText = '') => {
+    const value = policySettings?.[section]?.[field];
 
-  console.log("settings", policySettings)
+    if (type === 'time') {
+      const strToDate = (val) => {
+        if (!val || typeof val !== 'string') return null;
+        const [hStr, mStr] = val.split(':');
+        const h = parseInt(hStr, 10);
+        const m = parseInt(mStr, 10);
+        if (Number.isNaN(h) || Number.isNaN(m)) return null;
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        return d;
+      };
+      const dateToHHmm = (d) => {
+        if (!d) return '';
+        const h = String(d.getHours()).padStart(2, '0');
+        const m = String(d.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+      };
+
+      return (
+        <>
+          <TimePicker
+            format="HH:mm"
+            style={{ width: '100%', marginTop: '16px' }}
+            size="lg"
+            value={strToDate(value)}
+            onChange={(date) => {
+              handleInputChange(section, field, dateToHHmm(date));
+            }}
+            placeholder="Select time"
+            cleanable
+          />
+          <p style={{ fontSize: "0.75rem", color: "#6c757d", marginTop: "4px" }}>{helperText}</p>
+        </>
+      );
+    }
+
+    return (
+      <TextField
+        fullWidth
+        type={type}
+        value={value}
+        onChange={(e) =>
+          handleInputChange(
+            section,
+            field,
+            type === 'number' ? parseInt(e.target.value) || 0 : e.target.value
+          )
+        }
+        helperText={helperText}
+        margin="normal"
+        size="small"
+      />
+    );
+  };
 
   const renderSelectField = (section, field, label, options = [], helperText = '') => (
   <FormControl fullWidth margin="normal" size="small">
@@ -207,11 +250,11 @@ export default function CompanyPolicy() {
             className="bbb"
             {...a11yProps(3)}
           />
-          <Tab
+          {/* <Tab
             label={<LabelWithIcon icon={PolicyIcon} label="Templates" />}
             className="bbb"
             {...a11yProps(4)}
-          />
+          /> */}
         </Tabs>
 
         {/* Attendance Policy Tab */}
@@ -239,16 +282,7 @@ export default function CompanyPolicy() {
                       {renderTextField('attendance', 'lateLoginPenaltyThreshold', 'Late Login Penalty Threshold (minutes)', 'number', 'Minutes after which late login results in penalty')}
                     </div>
                     <div className="col-lg-6">
-                      {renderTextField('attendance', 'permissionGrantDuration', 'Permission Grant Duration (hours)', 'number', 'Default duration granted for permissions')}
-                    </div>
-                  </div>
-
-                  <div className="row">
-                    <div className="col-lg-6">
-                      {renderTextField('attendance', 'warningLimit', 'Warning Limit', 'number', 'Maximum warnings before action is taken')}
-                    </div>
-                    <div className="col-lg-6">
-                      {renderTextField('attendance', 'overtimeLimit', 'Overtime Limit (hours)', 'number', 'Maximum overtime hours allowed per day')}
+                      {renderTextField('attendance', 'defaultStartTime', 'Default Start Time (HH:mm)', 'time', 'Default daily start time for attendance calculations')}
                     </div>
                   </div>
                 </div>
@@ -359,6 +393,19 @@ export default function CompanyPolicy() {
                         "Automatically approves permission requests without manual review"
                       )}
                     </div>
+                    <div className="col-lg-12">
+                      {renderSelectField(
+                        "leave",
+                        "currentDayPendingApplication",
+                        "If a leave starting today remains pending",
+                        [
+                          { value: 'reject', label: 'Auto-reject at end of day' },
+                          { value: 'no_action', label: 'Do nothing (keep pending)' },
+                          { value: 'auto_approve', label: 'Auto-approve at end of day' },
+                        ],
+                        "Choose how to handle same-day pending leave applications at the end of the day"
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -425,6 +472,7 @@ export default function CompanyPolicy() {
       ])}
     </div>
 
+
     <div className="col-lg-6">
       {renderSelectField("notifications", "autoProcessingEnabled", "Auto Processing", [
         { value: true, label: "Enabled" },
@@ -445,6 +493,12 @@ export default function CompanyPolicy() {
         { value: false, label: "Disabled" },
       ])}
     </div>
+    <div className="col-lg-12">
+      {renderSelectField("notifications", "reminderDaysMode", "Reminder Days", [
+        { value: "workingday", label: "Working days only (Mon-Fri)" },
+        { value: "everyday", label: "Every day (Sun-Sat)" },
+      ], "Choose whether reminders are sent on all days or only weekdays")}
+    </div>
   </div>
 
                 </div>
@@ -452,7 +506,6 @@ export default function CompanyPolicy() {
             </div>
           </div>
         </TabPanel>
-
       </Box>
 
       <div className='settingsFooter'>

@@ -98,7 +98,7 @@ router.patch('/:module', verifyAdminHR, async (req, res) => {
     const validModules = [
       'leaveManagement',
       'wfhManagement',
-      'employeeOnboarding',
+      'employeeManagement',
       'attendanceManagement',
       'taskManagement',
       'holidayNotifications',
@@ -234,7 +234,7 @@ router.post('/bulk-toggle', verifyAdminHR, async (req, res) => {
     const targetModules = modules || [
       'leaveManagement',
       'wfhManagement',
-      'employeeOnboarding',
+      'employeeManagement',
       'attendanceManagement',
       'taskManagement',
       'holidayNotifications',

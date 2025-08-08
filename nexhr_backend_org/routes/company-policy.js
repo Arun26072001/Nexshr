@@ -211,10 +211,7 @@ router.get('/templates/list', verifyAdminHR, async (req, res) => {
           monthlyPermissionLimit: 1,
           permissionHourLimit: 60,
           lateLoginPenaltyThreshold: 120,
-          permissionGrantDuration: 1,
-          warningLimit: 2,
-          overtimeLimit: 10,
-          workingHoursPerDay: 9
+          defaultStartTime: "09:00"
         },
         leave: {
           teamLeaveLimit: 1,
@@ -230,10 +227,7 @@ router.get('/templates/list', verifyAdminHR, async (req, res) => {
           monthlyPermissionLimit: 4,
           permissionHourLimit: 180,
           lateLoginPenaltyThreshold: 360,
-          permissionGrantDuration: 3,
-          warningLimit: 5,
-          overtimeLimit: 14,
-          workingHoursPerDay: 8
+          defaultStartTime: "10:00"
         },
         leave: {
           teamLeaveLimit: 3,
@@ -249,10 +243,7 @@ router.get('/templates/list', verifyAdminHR, async (req, res) => {
           monthlyPermissionLimit: 2,
           permissionHourLimit: 120,
           lateLoginPenaltyThreshold: 240,
-          permissionGrantDuration: 2,
-          warningLimit: 3,
-          overtimeLimit: 12,
-          workingHoursPerDay: 8
+          defaultStartTime: "09:30"
         },
         leave: {
           teamLeaveLimit: 2,

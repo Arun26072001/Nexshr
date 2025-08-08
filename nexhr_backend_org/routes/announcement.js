@@ -2,7 +2,7 @@ const express = require('express');
 const { Announcement, announcementValidation } = require('../models/AnnouncementModel');
 const { verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Employee } = require('../models/EmpModel');
-const { sendPushNotification } = require('../auth/PushNotification');
+const { sendMail, pushNotification } = require('../Reuseable_functions/notifyFunction');
 const { errorCollector, checkValidObjId, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
 const router = express.Router();
 
@@ -53,11 +53,31 @@ router.post('/:id', async (req, res) => {
 
           // Send Push Notification
           if (emp.fcmToken) {
-            await sendPushNotification({
-              token: emp.fcmToken,
-              title: req.body.title,
-              body: req.body.message.replace(/<\/?[^>]+(>|$)/g, '')
-            });
+            await pushNotification(
+              emp?.company?._id,
+              "announcement",
+              "create",
+              {
+                tokens: emp.fcmToken,
+                title: req.body.title,
+                body: req.body.message.replace(/\<\/?[^\>]+(\>|$)/g, '')
+              }
+            );
+          }
+
+          // Send Email Notification
+          if (emp?.Email) {
+            await sendMail(
+              companyId,
+              'administrative',
+              'companyAnnouncements',
+              {
+                to: emp.Email,
+                subject: req.body.title,
+                text: req.body.message.replace(/\<[^>]*\>/g, ''),
+                html: req.body.message
+              }
+            );
           }
         })
       );

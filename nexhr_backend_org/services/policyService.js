@@ -122,9 +122,6 @@ function validatePolicyUpdates(updates) {
     warnings.push('High monthly permission limit may affect productivity');
   }
 
-  if (updates.attendance?.warningLimit < 2) {
-    warnings.push('Low warning limit may be too strict');
-  }
 
   if (updates.leave?.teamLeaveLimit > 3) {
     warnings.push('High team leave limit may affect operations');

@@ -37,7 +37,7 @@ nexr_frontend_org/
 ```javascript
 {
   companyId: ObjectId,                        // Reference to Company
-  
+
   // Module-specific settings
   leaveManagement: {
     application: Boolean,                     // New leave applications
@@ -48,7 +48,7 @@ nexr_frontend_org/
     approvalDeadlines: Boolean,               // Deadline warnings
     balanceAlerts: Boolean                    // Low balance alerts
   },
-  
+
   wfhManagement: {
     application: Boolean,
     approval: Boolean,
@@ -58,8 +58,8 @@ nexr_frontend_org/
     approvalDeadlines: Boolean,
     teamLimitAlerts: Boolean                  // Team WFH limit warnings
   },
-  
-  employeeOnboarding: {
+
+  employeeManagement: {
     welcomeEmails: Boolean,
     credentialUpdates: Boolean,
     documentReminders: Boolean,
@@ -67,7 +67,7 @@ nexr_frontend_org/
     completionNotifications: Boolean,
     taskAssignments: Boolean
   },
-  
+
   attendanceManagement: {
     latePunchNotifications: Boolean,
     breakReminders: Boolean,
@@ -78,7 +78,7 @@ nexr_frontend_org/
     attendanceAnomalies: Boolean,
     monthlyReports: Boolean
   },
-  
+
   taskManagement: {
     assignment: Boolean,
     completion: Boolean,
@@ -88,7 +88,7 @@ nexr_frontend_org/
     overdueTasks: Boolean,
     projectUpdates: Boolean
   },
-  
+
   holidayNotifications: {
     holidayListCreation: Boolean,
     holidayListUpdates: Boolean,
@@ -96,7 +96,7 @@ nexr_frontend_org/
     holidayReminders: Boolean,
     companyEvents: Boolean
   },
-  
+
   administrative: {
     timeScheduleChanges: Boolean,
     annualLeaveRenewals: Boolean,
@@ -106,7 +106,7 @@ nexr_frontend_org/
     userPermissionChanges: Boolean,
     reportGeneration: Boolean
   },
-  
+
   // Global settings
   globalSettings: {
     emailNotifications: Boolean,
@@ -120,7 +120,7 @@ nexr_frontend_org/
       endTime: String                         // "08:00"
     }
   },
-  
+
   // Customizable templates
   templates: {
     leaveApplication: String,
@@ -135,18 +135,19 @@ nexr_frontend_org/
 
 ### Base URL: `/api/notification-settings`
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/` | Get company notification settings | ✅ |
-| PUT | `/` | Update all notification settings | ✅ (Admin/HR) |
-| PATCH | `/:module` | Update specific module settings | ✅ (Admin/HR) |
-| GET | `/:module` | Get specific module settings | ✅ |
-| POST | `/reset` | Reset to default settings | ✅ (Admin/HR) |
-| POST | `/bulk-toggle` | Enable/disable all notifications | ✅ (Admin/HR) |
+| Method | Endpoint       | Description                       | Auth Required |
+| ------ | -------------- | --------------------------------- | ------------- |
+| GET    | `/`            | Get company notification settings | ✅            |
+| PUT    | `/`            | Update all notification settings  | ✅ (Admin/HR) |
+| PATCH  | `/:module`     | Update specific module settings   | ✅ (Admin/HR) |
+| GET    | `/:module`     | Get specific module settings      | ✅            |
+| POST   | `/reset`       | Reset to default settings         | ✅ (Admin/HR) |
+| POST   | `/bulk-toggle` | Enable/disable all notifications  | ✅ (Admin/HR) |
 
 ### Request Examples
 
 #### Get Settings
+
 ```javascript
 GET /api/notification-settings
 Headers: { Authorization: "Bearer <token>" }
@@ -163,6 +164,7 @@ Response:
 ```
 
 #### Update Module Settings
+
 ```javascript
 PATCH /api/notification-settings/leaveManagement
 Headers: { Authorization: "Bearer <token>" }
@@ -181,6 +183,7 @@ Response:
 ```
 
 #### Bulk Toggle
+
 ```javascript
 POST /api/notification-settings/bulk-toggle
 Headers: { Authorization: "Bearer <token>" }
@@ -204,6 +207,7 @@ A comprehensive React component with Material-UI providing:
 - **Success/error feedback** with toast notifications
 
 ### Key Features:
+
 - Color-coded modules with icons
 - Enabled/total notification counters
 - Quick module enable/disable buttons
@@ -218,24 +222,49 @@ A centralized service class for managing notifications with settings awareness.
 ### Key Methods:
 
 #### `isNotificationEnabled(companyId, module, notificationType)`
+
 Checks if a specific notification type is enabled, considering:
+
 - Module-specific settings
 - Global delivery channel settings
 - Quiet hours restrictions
 
 #### `sendNotificationIfEnabled(companyId, module, notificationType, data)`
+
 Sends notifications only if enabled, handling:
+
 - Template parsing
 - Multiple delivery channels
 - Error handling
 
 #### Helper Methods:
+
 ```javascript
 // Quick notification methods
-await NotificationService.notifyLeaveApplication(companyId, employeeName, dates, recipients);
-await NotificationService.notifyLeaveApproval(companyId, recipient, startDate, endDate);
-await NotificationService.notifyTaskAssignment(companyId, recipient, taskTitle, dueDate);
-await NotificationService.notifyAttendanceAlert(companyId, recipients, employeeName, alertType);
+await NotificationService.notifyLeaveApplication(
+  companyId,
+  employeeName,
+  dates,
+  recipients
+);
+await NotificationService.notifyLeaveApproval(
+  companyId,
+  recipient,
+  startDate,
+  endDate
+);
+await NotificationService.notifyTaskAssignment(
+  companyId,
+  recipient,
+  taskTitle,
+  dueDate
+);
+await NotificationService.notifyAttendanceAlert(
+  companyId,
+  recipients,
+  employeeName,
+  alertType
+);
 ```
 
 ## 📋 Integration Guide
@@ -261,13 +290,13 @@ await NotificationService.notifyLeaveApplication(
 ### 2. Advanced Integration
 
 ```javascript
-const NotificationService = require('../services/NotificationService');
+const NotificationService = require("../services/NotificationService");
 
 // Check before sending
 const isEnabled = await NotificationService.isNotificationEnabled(
-  companyId, 
-  'leaveManagement', 
-  'application'
+  companyId,
+  "leaveManagement",
+  "application"
 );
 
 if (isEnabled) {
@@ -280,15 +309,15 @@ if (isEnabled) {
 ```javascript
 await NotificationService.sendNotificationIfEnabled(
   companyId,
-  'taskManagement',
-  'assignment',
+  "taskManagement",
+  "assignment",
   {
-    recipient: 'user@example.com',
-    task_title: 'Complete Report',
-    due_date: '2024-01-15',
-    employee_name: 'John Doe',
-    subject: 'New Task Assignment',
-    message: 'You have been assigned a new task: Complete Report'
+    recipient: "user@example.com",
+    task_title: "Complete Report",
+    due_date: "2024-01-15",
+    employee_name: "John Doe",
+    subject: "New Task Assignment",
+    message: "You have been assigned a new task: Complete Report",
   }
 );
 ```
@@ -305,17 +334,17 @@ const NotificationService = require('../services/NotificationService');
 router.get("/make-know", async (req, res) => {
   try {
     const leaveApps = await LeaveApplication.find({...});
-    
+
     for (const leave of leaveApps) {
       const companyId = leave.employee.company._id;
-      
+
       // Check if notifications are enabled
       const isEnabled = await NotificationService.isNotificationEnabled(
-        companyId, 
-        'leaveManagement', 
+        companyId,
+        'leaveManagement',
         'application'
       );
-      
+
       if (isEnabled) {
         await NotificationService.notifyLeaveApplication(
           companyId,
@@ -325,7 +354,7 @@ router.get("/make-know", async (req, res) => {
         );
       }
     }
-    
+
     res.json({ message: "Notifications processed!" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -336,28 +365,28 @@ router.get("/make-know", async (req, res) => {
 ### Automated Reminders
 
 ```javascript
-const cron = require('node-cron');
+const cron = require("node-cron");
 
 // Daily reminder job
-cron.schedule('0 9 * * *', async () => {
-  console.log('Running notification reminders...');
-  
+cron.schedule("0 9 * * *", async () => {
+  console.log("Running notification reminders...");
+
   const pendingLeaves = await LeaveApplication.find({
-    status: 'pending',
-    createdAt: { $lt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+    status: "pending",
+    createdAt: { $lt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
   });
-  
+
   for (const leave of pendingLeaves) {
     await NotificationService.sendNotificationIfEnabled(
       leave.employee.company._id,
-      'leaveManagement',
-      'reminders',
+      "leaveManagement",
+      "reminders",
       {
         recipient: approverEmail,
-        subject: 'Leave Approval Reminder',
+        subject: "Leave Approval Reminder",
         message: `Reminder: ${leave.employee.name}'s leave application is pending approval.`,
         employee_name: leave.employee.name,
-        dates: formatDates(leave.fromDate, leave.toDate)
+        dates: formatDates(leave.fromDate, leave.toDate),
       }
     );
   }
@@ -367,6 +396,7 @@ cron.schedule('0 9 * * *', async () => {
 ## 🎨 UI Screenshots & Features
 
 ### Main Interface
+
 - **Header**: Title with refresh and reset buttons
 - **Master Control**: Global on/off toggle with description
 - **Module Accordions**: Expandable sections for each HR module
@@ -374,11 +404,13 @@ cron.schedule('0 9 * * *', async () => {
 - **Quick Actions**: Module-level enable/disable buttons
 
 ### Global Settings Panel
+
 - **Delivery Channels**: Email, Push, SMS, Browser toggles
 - **Frequency**: Dropdown for notification timing
 - **Quiet Hours**: Toggle and time picker for do-not-disturb periods
 
 ### Responsive Design
+
 - **Mobile-friendly**: Collapsible accordions and responsive grid
 - **Loading States**: Progress indicators during API calls
 - **Error Handling**: Toast notifications for success/failure
@@ -394,12 +426,14 @@ cron.schedule('0 9 * * *', async () => {
 ## 📊 Monitoring & Logging
 
 The system provides detailed logging for:
+
 - Notification delivery attempts
 - Settings changes and who made them
 - Failed notification attempts with reasons
 - Performance metrics for notification processing
 
 Example logs:
+
 ```
 [INFO] Notification sent: Leave application from John Doe (company: ABC123)
 [WARN] Notification skipped: leaveManagement.reminders disabled (company: ABC123)
@@ -409,6 +443,7 @@ Example logs:
 ## 🚀 Deployment Checklist
 
 ### Backend
+
 - [ ] Deploy NotificationSettingsModel.js
 - [ ] Deploy notification-settings.js routes
 - [ ] Deploy NotificationService.js
@@ -417,12 +452,14 @@ Example logs:
 - [ ] Configure cron jobs (if using automated reminders)
 
 ### Frontend
+
 - [ ] Deploy NotificationSettings.jsx component
 - [ ] Update Settings.jsx to include new tab
 - [ ] Test UI responsiveness
 - [ ] Verify API connectivity
 
 ### Testing
+
 - [ ] Unit tests for NotificationService
 - [ ] API endpoint testing
 - [ ] UI component testing
@@ -452,6 +489,7 @@ When extending the notification system:
 ## 📞 Support
 
 For issues or questions:
+
 - Check existing notification flows in `routes/` directory
 - Review integration examples in `examples/` directory
 - Test API endpoints with provided examples

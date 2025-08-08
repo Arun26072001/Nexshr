@@ -94,6 +94,7 @@ export default function CompanyTab() {
     },
     notifications: {
       reminderFrequency: 'daily',
+      reminderDaysMode: 'workingday',
       autoProcessingEnabled: true
     }
   })
@@ -608,6 +609,22 @@ export default function CompanyTab() {
                           <small className="text-muted">Default annual leave allocation for new employees</small>
                         </div>
                       </div>
+
+                      <div className="row mt-3">
+                        <div className="col-lg-12">
+                          <label className="form-label">If a leave starting today remains pending</label>
+                          <select
+                            className="form-control mb-2"
+                            value={policySettings?.leave?.currentDayPendingApplication || ''}
+                            onChange={(e) => handlePolicyChange('leave', 'currentDayPendingApplication', e.target.value)}
+                          >
+                            <option value="reject">Auto-reject at end of day</option>
+                            <option value="no_action">Do nothing (keep pending)</option>
+                            <option value="auto_approve">Auto-approve at end of day</option>
+                          </select>
+                          <small className="text-muted">Choose how to handle same-day pending leave applications at the end of the day</small>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -660,7 +677,19 @@ export default function CompanyTab() {
                             <option value="weekly">Weekly</option>
                             <option value="monthly">Monthly</option>
                           </select>
-                          <small className="text-muted">How often reminder notifications are sent</small>
+                      <small className="text-muted">How often reminder notifications are sent</small>
+                        </div>
+                        <div className="col-lg-6">
+                          <label className="form-label">Reminder Days</label>
+                          <select 
+                            className="form-control mb-2" 
+                            value={policySettings?.notifications?.reminderDaysMode}
+                            onChange={(e) => handlePolicyChange('notifications', 'reminderDaysMode', e.target.value)}
+                          >
+                            <option value="workingday">Working days only (Mon-Fri)</option>
+                            <option value="everyday">Every day (Sun-Sat)</option>
+                          </select>
+                          <small className="text-muted">Choose whether reminders are sent on all days or only weekdays</small>
                         </div>
                         <div className="col-lg-6">
                           <label className="form-label">Auto Processing</label>

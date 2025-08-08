@@ -1,8 +1,7 @@
 const express = require("express");
 const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { Holiday, HolidayValidation } = require("../models/HolidayModel");
-const sendMail = require("./mailSender");
-const { sendPushNotification } = require("../auth/PushNotification");
+const { pushNotification, sendMail } = require("../Reuseable_functions/notifyFunction");
 const { Employee } = require("../models/EmpModel");
 const jwt = require("jsonwebtoken");
 const { errorCollector } = require("../Reuseable_functions/reusableFunction");
@@ -31,7 +30,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
     const response = await Holiday.create(newHolidayData);
     const notifyemps = [];
-    const companyEmps = await Employee.find({ company: req.body.company, isDeleted:false }, "FirstName LastName Email fcmToken company notifications").populate("company", "CompanyName logo").exec();
+    const companyEmps = await Employee.find({ company: req.body.company, isDeleted: false }, "FirstName LastName Email fcmToken company notifications").populate("company", "CompanyName logo").exec();
     companyEmps.forEach(async (emp) => {
       const title = `${req.body.currentYear}'s of holidays created`;
       const message = `${emp.company.CompanyName} of ${req.body.currentYear} of holiday's has been created`;
@@ -43,12 +42,15 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       await emp.save();
       if (emp.Email) {
         notifyemps.push(emp.Email)
-        sendMail({
-          From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-          To: emp.Email,
-          Subject: title,
-          HtmlBody:
-            `
+        await sendMail(
+          emp.company._id,
+          "holidayNotifications",
+          "holidayListCreation",
+          {
+            to: emp.Email,
+            subject: title,
+            from: `<${process.env.FROM_MAIL}> (Nexshr)`,
+            html: `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -99,14 +101,20 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 </body>
 </html>
 `
-        })
+          }
+        );
       }
       if (emp.fcmToken) {
-        await sendPushNotification({
-          title,
-          token: emp.fcmToken,
-          body: message
-        })
+        await pushNotification(
+          emp.company._id,
+          "holidayNotifications",
+          "holidayListCreation",
+          {
+            tokens: emp.fcmToken,
+            title,
+            body: message
+          }
+        );
       }
     })
     return res.send({ message: "holiday has been added.", data: response.data });
@@ -166,7 +174,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     if (!holiday) {
       return res.status(404).send({ error: `${req.body.currentYear} holidays not found` })
     }
-    console.log("type", typeof req.body.company);
+
     const companyId = typeof req.body.company === "string" ? req.body.company : req.body.company._id
     const holidayObj = {
       ...req.body,
@@ -187,7 +195,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     }
     const updatedHolidays = await Holiday.findByIdAndUpdate(req.params.id, req.body, { new: true });
     const notifyemps = [];
-    const companyEmps = await Employee.find({ company: req.body.company, isDeleted:false }, "FirstName LastName Email fcmToken company notifications").populate("company", "CompanyName logo").exec();
+    const companyEmps = await Employee.find({ company: req.body.company, isDeleted: false }, "FirstName LastName Email fcmToken company notifications").populate("company", "CompanyName logo").exec();
     companyEmps.forEach(async (emp) => {
       const title = `${req.body.currentYear}'s of holidays updated`;
       const message = `${emp.company.CompanyName} of ${req.body.currentYear} of holiday's has been updated`;
@@ -199,11 +207,15 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       await emp.save();
       if (emp.Email) {
         notifyemps.push(emp.Email)
-        sendMail({
-          From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-          To: emp.Email,
-          Subject: title,
-          HtmlBody: `
+        await sendMail(
+          emp.company._id,
+          "holidayNotifications",
+          "holidayListUpdates",
+          {
+            to: emp.Email,
+            subject: title,
+            from: `<${process.env.FROM_MAIL}> (Nexshr)`,
+            html: `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -254,14 +266,20 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
 </body>
 </html>
 `
-        })
+          }
+        );
       }
       if (emp.fcmToken) {
-        await sendPushNotification({
-          title,
-          token: emp.fcmToken,
-          body: message
-        })
+        await pushNotification(
+          emp.company._id,
+          "holidayNotifications",
+          "holidayListUpdates",
+          {
+            tokens: emp.fcmToken,
+            title,
+            body: message
+          }
+        );
       }
     })
     return res.send({ message: `${updatedHolidays.currentYear} of holidays has been updated`, notifyemps })
