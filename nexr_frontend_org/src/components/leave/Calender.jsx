@@ -10,15 +10,18 @@ import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import Loading from '../Loader';
+import { jwtDecode } from 'jwt-decode';
 
 const localizer = dayjsLocalizer(dayjs);
 export default function LeaveCalender() {
     const { data, whoIs } = useContext(EssentialValues);
+    const { _id, token } = data;
     const [dateRangeValue, setDateRangeValue] = useState([]);
     const [formattedLeaveDays, setFormattedLeaveDays] = useState([]);
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
     const [empName, setEmpName] = useState("");
     const url = process.env.REACT_APP_API_URL;
+    const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(data.token);
     const [isLoading, setIsLoading] = useState(false);
     const statuses = [{ status: "Approved", color: "#78C841" }, { status: "Rejected", color: "#FB4141" }, { status: "Pending", color: "#FFD700" }]
 
@@ -55,8 +58,45 @@ export default function LeaveCalender() {
         }
     }
 
+    const getLeaveDataFromTeam = async () => {
+        setIsLoading(true);
+        try {
+            const res = await axios.get(`${url}/api/leave-application/team/${_id}`, {
+                params: {
+                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
+                    dateRangeValue
+                },
+                headers: {
+                    authorization: token || ""
+                }
+            })
+            const leaveData = res.data.leaveData || [];
+            const formattedRequests = leaveData.map((leave) => {
+                const { fromDate, toDate, leaveType, employee, status } = leave;
+                return {
+                    title: leaveType,
+                    start: new Date(fromDate),
+                    end: new Date(toDate),
+                    userProfile: employee.profile,
+                    userName: employee.FirstName + " " + employee.LastName,
+                    status
+                }
+            })
+            setFormattedLeaveDays(formattedRequests);
+            setFullLeaveRequests(formattedRequests)
+        } catch (err) {
+            toast.error(err?.response?.data?.message);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     useEffect(() => {
-        getLeaveData();
+        if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
+            getLeaveDataFromTeam()
+        } else if (["admin", "hr"].includes(whoIs)) {
+            getLeaveData();
+        }
     }, [dateRangeValue]);
 
     useEffect(() => {

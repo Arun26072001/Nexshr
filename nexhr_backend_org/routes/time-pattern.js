@@ -1,12 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { TimePattern, TimePatternValidation } = require('../models/TimePatternModel');
-const Joi = require('joi');
 const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Employee } = require('../models/EmpModel');
-const { sendPushNotification } = require('../auth/PushNotification');
-const sendMail = require('./mailSender');
 const { changeClientTimezoneDate, errorCollector, checkValidObjId, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
+const { pushNotification, sendMail } = require('../Reuseable_functions/notifyFunction');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -111,7 +109,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       const notification = {
         company: member.company._id,
         title,
-        message: " We would like to inform you that the company's official time pattern has been updated to enhance workflow and maintain consistency across departments.",
+        message: "We would like to inform you that the company's official time pattern has been updated to enhance workflow and maintain consistency across departments.",
       };
 
       const companyName = member.company.CompanyName;
@@ -150,7 +148,9 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
         </html>
       `;
 
-      await sendMail({
+      await sendMail(notification.company,
+        "administrative",
+        "timeScheduleChanges", {
         From: `<${process.env.FROM_MAIL}> (Nexshr)`,
         To: member.Email,
         Subject: title,
@@ -161,11 +161,22 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       fullEmp.notifications.push(notification);
       await fullEmp.save();
 
-      await sendPushNotification({
-        token: member.fcmToken,
-        title: notification.title,
-        body: notification.message,
-      });
+      // await sendPushNotification({
+      //   token: member.fcmToken,
+      //   title: notification.title,
+      //   body: notification.message,
+      // });
+
+      await pushNotification(
+        notification.company,
+        "administrative",
+        "timeScheduleChanges",
+        {
+          tokens: member.fcmToken,
+          title: notification.title,
+          body: notification.message
+        }
+      );
 
       notify.push(member.Email);
     }

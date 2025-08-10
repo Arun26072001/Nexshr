@@ -45,9 +45,10 @@ const emailTemplate = require("./routes/email-template");
 const wfhRouter = require("./routes/wfh-application");
 const timezone = require("./routes/timezone");
 const comment = require("./routes/comments");
+const companyPolicy = require("./routes/company-policy");
+const notificationSettings = require("./routes/notification-settings");
 const category = require("./routes/planner-category");
 const { sendPushNotification, askReasonForDelay } = require("./auth/PushNotification");
-const { changeClientTimezoneDate } = require("./Reuseable_functions/reusableFunction");
 // for delete soft deleted docs
 const deleteOldSoftDeletedDocs = require("./ModelChangeEvents/cleanupScheduler");
 
@@ -81,7 +82,7 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH","OPTIONS"],
     allowedHeaders: "*",
     credentials: true,
   })
@@ -142,105 +143,13 @@ app.use("/api/planner", plannerType);
 app.use("/api/timezone", timezone);
 app.use("/api/category", category);
 app.use("/api/comment", comment);
+app.use("/api/company-policy", companyPolicy);
+app.use("/api/notification-settings", notificationSettings);
 app.post("/push-notification", sendPushNotification);
 app.post("/ask-reason-for-delay", askReasonForDelay);
 
-schedule.scheduleJob("0 0 10 4 * *", async function () {
-  try {
-    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
-    console.log("Payslip generation response:", response.data);
-  } catch (error) {
-    console.error("Error while generating payslips:", error);
-  }
-});
-
-deleteOldSoftDeletedDocs()
-
-async function fetchTimePatterns() {
-  try {
-    const timePatterns = await TimePattern.find();
-    timePatterns.forEach((pattern) => {
-      const actualPatternStart = changeClientTimezoneDate(pattern.StartingTime);
-      const actualPatternEnd = changeClientTimezoneDate(pattern.FinishingTime)
-      const [startingHour, startingMin] = [actualPatternStart.getHours(), actualPatternStart.getMinutes()];
-      const [finishingHour, finishingMin] = [actualPatternEnd.getHours(), actualPatternEnd.getMinutes()];
-
-      // Schedule job for login
-      schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * 1-5`, async function () {
-        try {
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/login`);
-          console.log("Login Triggered:", response.data.message);
-        } catch (error) {
-          console.error("Login Error:", error.message);
-        }
-      });
-
-      // send mail and apply fullday leave
-      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * *`, async function () {
-        try {
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave/${pattern._id}`);
-          console.log("Apply Leave for Not-login Triggered:", response.data.message);
-        } catch (error) {
-          console.error("Logout Error:", error);
-        }
-      })
-    });
-  } catch (error) {
-    // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    console.error("Error fetching time patterns:", error);
-  }
-}
-
-fetchTimePatterns();
-
-// know their higher authorities leave and wfh
-async function makeKnowLeave() {
-  try {
-    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
-    console.log(response.data);
-  } catch (error) {
-    console.log(error.response.data.error);
-  }
-}
-
-async function makeKnowWFH() {
-  try {
-    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/wfh-application/make-know`);
-    console.log(response.data);
-  } catch (error) {
-    console.log(error.response.data.error);
-  }
-}
-
-schedule.scheduleJob("0 10 * * 1-5", async () => {
-  await makeKnowLeave();
-  await makeKnowWFH();
-});
-
-// reject unresponsed leave and wfh reqests
-async function rejectLeave() {
-  try {
-    const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/leave-application/reject-leave`);
-    console.log(res.data);
-  } catch (error) {
-    console.log("error in reject leave", error);
-  }
-}
-
-async function rejectWfh() {
-  try {
-    const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/wfh-application/reject-wfh`);
-    console.log(res.data);
-  } catch (error) {
-    console.log("error in reject leave", error);
-  }
-}
-
-schedule.scheduleJob("0 7 * * *", async () => {
-  await rejectLeave();
-  await rejectWfh();
-})
-
+// delete permanently soft deleted docs
+deleteOldSoftDeletedDocs();
 
 // Start Server
 const port = process.env.PORT;

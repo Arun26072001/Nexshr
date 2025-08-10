@@ -8,12 +8,13 @@ const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
-const sendMail = require("./mailSender");
+const { sendMail } = require("../Reuseable_functions/notifyFunction");
 const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector, isValidLeaveDate, setPeriodOfLeave, checkDateIsHoliday, checkValidObjId, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
-const { sendPushNotification } = require('../auth/PushNotification');
+const { pushNotification } = require('../Reuseable_functions/notifyFunction');
 const { Holiday } = require('../models/HolidayModel');
 const { TimePattern } = require('../models/TimePatternModel');
+const { getLeavePolicy, getAttendancePolicy } = require('../services/policyService');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, deadLineTask = []) {
@@ -92,7 +93,9 @@ leaveApp.get("/check-permissions/:id", verifyAdminHREmployeeManagerNetwork, asyn
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
+    // to get full range start and end date's data
+    startOfMonth.setHours(0, 0, 0, 0);
+    endOfMonth.setHours(23, 59, 59, 0);
     const leaveData = await LeaveApplication.find({
       employee: id,
       leaveType: "Permission Leave",
@@ -178,12 +181,17 @@ leaveApp.get("/make-know", async (req, res) => {
       `;
 
             // Email
-            await sendMail({
-              From: `<${emp.Email}> (Nexshr)`,
-              To: member.Email,
-              Subject,
-              HtmlBody: htmlContent,
-            });
+            await sendMail(
+              emp?.company?._id,
+              "leaveManagement",
+              "reminders",
+              {
+                to: member.Email,
+                subject: Subject,
+                html: htmlContent,
+                from: `<${emp.Email}> (Nexshr)`
+              }
+            );
 
             // Notification
             const notification = {
@@ -200,12 +208,16 @@ leaveApp.get("/make-know", async (req, res) => {
 
             // Push notification
             if (member.fcmToken) {
-              await sendPushNotification({
-                token: member.fcmToken,
-                title: notification.title,
-                body: notification.message,
-                // company: emp.company
-              });
+              await pushNotification(
+                emp?.company?._id,
+                "leave",
+                "reminders",
+                {
+                  tokens: member.fcmToken,
+                  title: notification.title,
+                  body: notification.message
+                }
+              );
             }
           }
         }
@@ -462,18 +474,18 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
       return Array.from(setValues).map((emp) => JSON.parse(emp))
     }
     const uniqueEmps = filterUniqeData(employees);
+    console.log("teamEmps", uniqueEmps);
 
     // Fetch team members' basic info
     const colleagues = await Employee.find(
       { _id: { $in: uniqueEmps }, isDeleted: false },
       "FirstName LastName Email phone profile"
     ).lean();
-
     // Fetch leave applications within the date range
     let teamLeaves = await LeaveApplication.find({
       employee: { $in: uniqueEmps },
       isDeleted: false,
-      leaveType: { $nin: ["Unpaid Leave (LWP)"] },
+      // leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       $or: [
         {
           fromDate: { $lte: endOfMonth },
@@ -483,7 +495,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     })
       .populate("employee", "FirstName LastName profile")
       .lean(); // lean = returns plain JS objects, faster
-
+    console.log("teamLeaves", teamLeaves)
     // Map prescription URLs
     teamLeaves = teamLeaves.map(formatLeaveData)
     // filter leave from unpaid and permission
@@ -586,7 +598,6 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
           select: "teamName"
         }
       }).lean().exec();
-    console.log("leave", leaveData)
 
     return res.status(200).send(leaveData);
   } catch (error) {
@@ -680,12 +691,13 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
 
     if (req.query?.dateRangeValue) {
       [startOfMonth, endOfMonth] = req.query.dateRangeValue.map(date => new Date(date));
-      startOfMonth.setHours(0, 0, 0, 0);
-      endOfMonth.setHours(23, 59, 59, 999);
     } else {
       startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     }
+    startOfMonth.setHours(0, 0, 0, 0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
     const filterObj = req.params.whoIs === "hr" ? { Account: { $in: [3, 4, 5] }, isDeleted: false, company: companyId } : { isDeleted: false, company: companyId };
 
     const employees = await Employee.find(
@@ -801,16 +813,13 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
 
   if (req.query?.daterangeValue) {
     startOfMonth = new Date(req.query.daterangeValue[0]);
-    // reduce one day from start the date for exact filter
-    startOfMonth.setDate(startOfMonth.getDate() - 1)
     endOfMonth = new Date(req.query.daterangeValue[1]);
-    // add one day from end the date for exact filter
-    endOfMonth.setDate(endOfMonth.getDate() + 1)
-    endOfMonth.setHours(23, 59, 59, 999); // Include the full last day
   } else {
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
   }
+  startOfMonth.setHours(0, 0, 0, 0);
+  endOfMonth.setHours(23, 59, 59, 0);
 
   try {
     const employeeLeaveData = await LeaveApplication.find({ employee: empId, isDeleted: false, fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth } })
@@ -893,68 +902,87 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
 });
 
 // need to update this api
-leaveApp.put("/reject-leave", async (req, res) => {
+leaveApp.put("/final-response-leave", async (req, res) => {
   try {
     const today = new Date();
     const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
 
     const companyId = getCompanyIdFromToken(req.headers["authorization"]);
     if (!companyId) {
-      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+      return res.status(400).send({
+        error: "You are not part of any company. Please check with your higher authorities."
+      });
     }
+
     let leaves = await LeaveApplication.find({
       company: companyId,
       isDeleted: false,
       fromDate: { $lte: endOfDay },
       leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       status: "pending"
-    }).populate("employee", "FirstName LastName Email").exec();
+    }).populate("employee", "FirstName LastName Email fcmToken").exec();
 
     if (!leaves.length) {
       return res.status(200).send({ message: "No pending leave applications found for today." });
     }
 
-    const actualLeave = leaves.filter((leave) => new Date(leave.fromDate).toLocaleDateString() !== new Date(leave.createdAt).toLocaleDateString())
+    const actualLeave = leaves.filter(
+      (leave) => new Date(leave.fromDate).toLocaleDateString() !== new Date(leave.createdAt).toLocaleDateString()
+    );
+    const { currentDayPendingApplication } = await getLeavePolicy(companyId);
+    await Promise.all(
+      actualLeave.map(async (leave) => {
+        // Mark all approvers as rejected
+        let approvers = {};
+        Object.entries(leave.approvers).forEach(([key]) => {
+          approvers[key] = currentDayPendingApplication === "reject" ? "rejected" : currentDayPendingApplication === "auto_approve" ? "approved" : "pending";
+        });
 
-    await Promise.all(actualLeave.map(async (leave) => {
-      let approvers = {};
-      Object.entries(leave.approvers).map(([key, value]) => {
-        approvers[key] = "rejected"
+        await LeaveApplication.findByIdAndUpdate(
+          leave._id,
+          { ...leave.toObject(), status: "rejected", approvers },
+          { new: true }
+        );
+
+        const employee = leave.employee;
+        const actualFromDate = changeClientTimezoneDate(leave.fromDate);
+        const actualToDate = changeClientTimezoneDate(leave.toDate);
+
+        // Notification content
+        const subject = `Leave Application Rejected ${leave.leaveType} (${formatDate(actualFromDate)} - ${formatDate(actualToDate)})`;
+        const htmlContent = `
+          <p>Dear ${employee?.FirstName || "Employee"},</p>
+          <p>This is to inform you that your recent leave application (${leave.leaveType} / (<b>${formatDate(actualFromDate)} - ${formatDate(actualToDate)}</b>)) has not been responded to by the higher officials.</p>
+          <p style="color: red; font-weight: bold;">Kindly note that if you choose to proceed with the leave, it will be considered as unpaid and may result in a corresponding deduction from your salary.</p>
+          <p>Thank you for your understanding.</p>
+        `;
+
+        // Send email + push in parallel
+        await Promise.all([
+          sendMail(companyId, "leaveManagement", "rejection", {
+            to: employee?.Email,
+            subject,
+            html: htmlContent,
+            from: `<${process.env.FROM_MAIL}> (Nexshr)`
+          }),
+
+          employee?.fcmToken ? pushNotification(companyId, "leaveManagement", "rejection", {
+            tokens: employee?.fcmToken,
+            title: "Leave Application Rejected",
+            body: `Your leave request from ${formatDate(actualFromDate)} to ${formatDate(actualToDate)} has been rejected.`
+          }) : Promise.resolve()
+        ]);
       })
-      const updatedLeave = {
-        ...leave,
-        status: "rejected",
-        approvers
-      };
-
-      await LeaveApplication.findByIdAndUpdate(leave._id, updatedLeave, { new: true });
-
-      const employee = leave.employee;
-      const actualFromDate = changeClientTimezoneDate(leave.fromDate);
-      const actualToDate = changeClientTimezoneDate(leave.toDate)
-      const htmlContent = `
-        <p>Dear ${employee?.FirstName || "Employee"},</p>
-        <p>This is to inform you that your recent leave application(${leave.leaveType}/ (<b>${formatDate(actualFromDate)} - ${formatDate(actualToDate)}</b>)) has not been responsed by the higher officials.</p>
-        <p style="color: red; font-weight: bold;">Kindly note that if you choose to proceed with the leave, it will be considered as unpaid and may result in a corresponding deduction from your salary.</p>
-        <p>Thank you for your understanding.</p>
-      `;
-
-      await sendMail({
-        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-        To: employee?.Email,
-        Subject: `Leave Application Rejected ${leave.leaveType}/ (${formatDate(actualFromDate)} - ${formatDate(actualToDate)})`,
-        HtmlBody: htmlContent,
-      });
-    }));
+    );
 
     return res.status(200).send({ message: "Leave rejection processed successfully." });
 
   } catch (error) {
-    // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error processing leave rejections:", error);
     return res.status(500).send({ error: error.message });
   }
 });
+
 
 leaveApp.get("/check-is-valid-leave/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -1000,6 +1028,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
   try {
     const companyId = getCompanyIdFromToken(req.headers["authorization"]) || "";
     const { empId } = req.params;
+
     // check is valid id
     if (!checkValidObjId(empId)) {
       return res.status(400).send({ error: "Invalid or missing Employee Id" })
@@ -1031,7 +1060,20 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
     const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
 
-    // ✅ Check team leave count
+    // Load policy once for validations below
+    const leavePolicy = await getLeavePolicy(companyId);
+
+    // Enforce prescription for medical/sick leave based on policy
+    const isMedicalLeave = /medical/i.test(leaveType || "");
+    if (isMedicalLeave && leavePolicy?.medLeavePresc) {
+      if (!prescription) {
+        return res.status(400).json({ error: "Prescription is required for medical leave as per company policy." });
+      }
+    }
+
+    // ✅ Check team leave count using dynamic policy
+    const teamLeaveLimit = leavePolicy.teamLeaveLimit;
+
     const team = await Team.findOne({ employees: empId, isDeleted: false }, "employees");
     if (team?.employees?.length) {
       const overlappingleaveApps = await LeaveApplication.find({
@@ -1042,8 +1084,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         toDate: { $gte: fromDate },
       });
 
-      if (overlappingleaveApps.length >= 2) {
-        return res.status(400).json({ error: "Already two members are approved for leave in this time period." });
+      if (overlappingleaveApps.length >= teamLeaveLimit) {
+        return res.status(400).json({ error: `Already ${teamLeaveLimit} members are approved for leave in this time period.` });
       }
     }
 
@@ -1079,16 +1121,18 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         ![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
         return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
       }
+    }
 
-      if (["Annual Leave", "Casual Leave"].includes(leaveType) &&
-        [3, 5].includes(accountLevel) && [today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
-        return res.status(400).json({ error: `${leaveType} is not allowed for same day and next dates for your role.` });
+    // Enforce advance application for Annual/Casual based on policy
+    if (["Annual Leave", "Casual Leave"].includes(leaveType) && leavePolicy?.casualLeaveAdvanceApplication) {
+      if ([today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
+        return res.status(400).json({ error: `${leaveType} must be applied in advance as per company policy.` });
       }
     }
 
     const higherOfficals = ["lead", "head", "manager", "admin", "hr"];
     // 4. Fetch employee
-    const emp = await Employee.findById(personId, "FirstName LastName Email monthlyPermissions permissionHour typesOfLeaveRemainingDays leaveApplication company team workingTimePattern")
+    const emp = await Employee.findById(personId, "FirstName LastName Email typesOfLeaveRemainingDays leaveApplication company team workingTimePattern")
       .populate([
         { path: "leaveApplication", match: { leaveType: "Permission Leave", fromDate: { $gte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1), $lte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0) } } },
         { path: "company", select: "logo CompanyName" },
@@ -1121,14 +1165,16 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 6. Permission Leave checks
     if (leaveType.toLowerCase().includes("permission")) {
+      const attendancePolicy = await getAttendancePolicy(companyId);
       const durationInMinutes = (new Date(toDate) - new Date(fromDate)) / 60000;
       // check permission duration
-      if (durationInMinutes > (emp.permissionHour || 120)) {
+      if (durationInMinutes > Number(attendancePolicy.permissionHourLimit) * 60) {
         return res.status(400).json({ error: `Permission is only allowed for less than ${emp.permissionHour || "2"} hours.` });
       }
       // check permission counts in current month
-      if ((emp.leaveApplication?.length || 0) >= (emp.monthlyPermissions || 2)) {
-        return res.status(400).json({ error: `You have already used ${emp.monthlyPermissions} permissions this month.` });
+      const monthlyPermissions = attendancePolicy.monthlyPermissionLimit;
+      if ((emp.leaveApplication?.length || 0) >= (monthlyPermissions)) {
+        return res.status(400).json({ error: `You have already used ${monthlyPermissions} permissions this month.` });
       }
     }
 
@@ -1188,23 +1234,34 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
             title: "Leave apply Notification",
             message: `${emp.FirstName} ${emp.LastName} has applied for leave from ${formatDate(changeClientTimezoneDate(fromDate))} to ${formatDate(changeClientTimezoneDate(toDate))}.`,
           };
-          sendMail({
-            From: `<${emp.Email}> (Nexshr)`,
-            To: member.Email,
-            Subject: "Leave Application Notification",
-            HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
-          });
+          await sendMail(
+            emp.company._id,
+            "leaveManagement",
+            "application",
+            {
+              to: member.Email,
+              subject: "Leave Application Notification",
+              html: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
+              from: `<${emp.Email}> (Nexshr)`
+            }
+          );
           const fullEmp = await Employee.findById(member._id, "notifications");
           fullEmp.notifications.push(notification);
           await fullEmp.save();
           // set dyanmic path depends on role
           const path = `${process.env.FRONTEND_BASE_URL}/${["lead", "head"].includes(role) ? "emp" : role === "manager" ? "manager" : role === "admin" ? "admin" : "hr"}/leave/leave-records`
-          await sendPushNotification({
-            token: member.fcmToken,
-            title: notification.title,
-            body: notification.message,
-            path
-          });
+          if (member.fcmToken) {
+            await pushNotification(
+              emp.company._id,
+              "leaveManagement",
+              "application",
+              {
+                tokens: member.fcmToken,
+                title: notification.title,
+                body: notification.message
+              }
+            );
+          }
           notify.push(member.Email);
         });
       });
@@ -1248,6 +1305,22 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
+
+    // Enforce advance application for Annual/Casual based on policy on update
+    try {
+      const policy = await getLeavePolicy(emp?.company?._id || emp?.company);
+      const todayUpd = new Date();
+      todayUpd.setHours(0, 0, 0, 0);
+      const tomorrowUpd = new Date(todayUpd);
+      tomorrowUpd.setDate(todayUpd.getDate() + 1);
+      const fromStr = new Date(fromDateValue).toDateString();
+      if (["Annual Leave", "Casual Leave"].includes((leaveType || "").trim()) && policy?.casualLeaveAdvanceApplication) {
+        if ([todayUpd.toDateString(), tomorrowUpd.toDateString()].includes(fromStr)) {
+          return res.status(400).json({ error: `${leaveType} must be applied in advance as per company policy.` });
+        }
+      }
+    } catch (_) {}
+
     const leaveApplicationYear = new Date(req.body.fromDate).getFullYear();
     const holiday = await Holiday.findOne({ currentYear: leaveApplicationYear, company: emp.employee });
 
@@ -1349,12 +1422,17 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             notified.add(member.Email);
             mailList.push(member.Email);
 
-            await sendMail({
-              From: `< ${process.env.FROM_MAIL} > (Nexshr)`,
-              To: member.Email,
-              Subject,
-              HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member)
-            });
+            await sendMail(
+              emp.company._id,
+              "leaveManagement",
+              updatedStatus === "approved" ? "approval" : "rejection",
+              {
+                to: member.Email,
+                subject: Subject,
+                html: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member),
+                from: `<${process.env.FROM_MAIL}> (Nexshr)`
+              }
+            );
 
             await Employee.findByIdAndUpdate(member._id, {
               $push: {
@@ -1375,12 +1453,17 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
               } else {
                 path = `${process.env.FRONTEND_BASE_URL}/${member.type}/leave/leave-records`
               }
-              await sendPushNotification({
-                token: member.fcmToken,
-                title: Subject,
-                body: message,
-                path
-              });
+              await pushNotification(
+                emp.company._id,
+                "leaveManagement",
+                updatedStatus === "approved" ? "approval" : "rejection",
+                {
+                  tokens: member.fcmToken,
+                  title: Subject,
+                  body: message,
+                  path
+                }
+              );
             }
           }
         }

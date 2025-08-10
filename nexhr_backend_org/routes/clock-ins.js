@@ -3,15 +3,15 @@ const router = express.Router();
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTeamHigherAuthority, verifyAdminHR } = require("../auth/authMiddleware");
 const { ClockIns, clockInsValidation } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
-const sendMail = require("./mailSender");
 const { format } = require("date-fns");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
 const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, isValidDate, getCurrentTimeInMinutes, checkDateIsHoliday, timeZoneHrMin, convertToMinutes, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
-const { sendPushNotification } = require("../auth/PushNotification");
+const { pushNotification, sendMail } = require("../Reuseable_functions/notifyFunction");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
+const { getAttendancePolicy } = require("../services/policyService");
 
 router.post("/verify_completed_workinghour", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -71,36 +71,33 @@ router.post("/verify_completed_workinghour", verifyAdminHREmployeeManagerNetwork
 
 router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
     try {
-        // check is valid id
         const timePatternId = req.params.workPatternId;
         if (!checkValidObjId(timePatternId)) {
-            return res.status(400).send({ error: "Invalid or missing WorkingtimePattern Id" })
+            return res.status(400).send({ error: "Invalid or missing WorkingTimePattern Id" });
         }
-        const now = getCurrentTimeInMinutes();
 
+        const now = new Date(); // Use a proper Date object
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
         const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-        const checkDateIsWeekend = async (date) => {
-            const timePattern = await TimePattern.findById(timePatternId, "WeeklyDays").lean();
-            if (timePattern?.WeeklyDays) {
-                const weekday = format(date, "EEEE");
-                return !timePattern.WeeklyDays.includes(weekday);
+        // Fetch time pattern once
+        const timePattern = await TimePattern.findById(timePatternId, "WeeklyDays").lean();
+        if (timePattern?.WeeklyDays) {
+            const weekday = format(now, "EEEE");
+            if (!timePattern.WeeklyDays.includes(weekday)) {
+                return res.status(200).send({ message: "No need to apply leave for Weekend" });
             }
-            return false;
-        };
-
-        if (await checkDateIsWeekend(now)) {
-            return res.status(200).send({ message: "No need to apply leave for Weekend" });
         }
 
-        const allEmployees = await Employee.find({ workingTimePattern: timePatternId },
-            "_id workingTimePattern FirstName LastName Email team leaveApplication company")
+        const allEmployees = await Employee.find(
+            { workingTimePattern: timePatternId },
+            "_id workingTimePattern FirstName LastName Email team leaveApplication company"
+        )
             .populate("leaveApplication")
             .populate("workingTimePattern")
             .populate({
                 path: "team",
-                populate: { path: "hr", select: "FirstName LastName Email fcmToken" },
+                populate: { path: "hr", select: "FirstName LastName Email company fcmToken" },
             });
 
         const notLoginEmps = [];
@@ -114,7 +111,11 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
             });
             if (hasClockIn) continue;
 
-            const holiday = await Holiday.findOne({ currentYear: now.getFullYear(), company: emp.company, isDeleted: false });
+            const holiday = await Holiday.findOne({
+                currentYear: now.getFullYear(),
+                company: emp.company,
+                isDeleted: false,
+            });
             const isTodayHoliday = holiday ? checkDateIsHoliday(holiday.holidays, now) : false;
             if (isTodayHoliday) continue;
 
@@ -124,7 +125,6 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
                 status: "approved",
                 leaveType: { $ne: "Permission Leave" },
             });
-
             if (!leaveExists) notLoginEmps.push(emp);
         }
 
@@ -132,69 +132,94 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
             return res.send({ message: "No employees found without punch-in today." });
         }
 
+        const { pushNotification } = require("../Reuseable_functions/notifyFunction");
         const emailPromises = [];
-        const leaveApplications = await Promise.all(notLoginEmps.map(async (emp) => {
-            if (!emp.workingTimePattern && !emp.workingTimePattern.StartingTime) return null;
-            const [startHour, startMin] = timeZoneHrMin(emp.workingTimePattern.StartingTime).split(":").map((value) => Number(value));
-            const [endHour, endMin] = timeZoneHrMin(emp.workingTimePattern.FinishingTime).split(":").map((value) => Number(value));
 
-            const from = new Date();
-            from.setHours(startHour, startMin);
-            const to = new Date();
-            to.setHours(endHour, endMin);
+        const leaveApplications = await Promise.all(
+            notLoginEmps.map(async (emp) => {
+                if (!emp.workingTimePattern || !emp.workingTimePattern.StartingTime) return null;
 
-            const leave = await LeaveApplication.create({
-                leaveType: "Unpaid Leave (LWP)",
-                fromDate: from,
-                toDate: to,
-                periodOfLeave: "full day",
-                reasonForLeave: "Didn't punch in until EOD",
-                employee: emp._id,
-                status: "approved",
-                approvers: {
-                    lead: "approved",
-                    head: "approved",
-                    hr: "approved",
-                    manager: "approved",
-                },
-            });
+                const [startHour, startMin] = timeZoneHrMin(emp.workingTimePattern.StartingTime)
+                    .split(":")
+                    .map(Number);
+                const [endHour, endMin] = timeZoneHrMin(emp.workingTimePattern.FinishingTime)
+                    .split(":")
+                    .map(Number);
 
-            await Employee.findByIdAndUpdate(emp._id, { $set: { leaveApplication: [leave._id] } });
+                const from = new Date();
+                from.setHours(startHour, startMin, 0, 0);
+                const to = new Date();
+                to.setHours(endHour, endMin, 0, 0);
 
-            const Subject = "Full-day Leave Applied (Unpaid Leave)";
-            const htmlContent = `
-        <html>
-          <body>
-            <p>Dear HR,</p>
-            <h2>${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.</h2>
-            <p>As a result, the HRM system has automatically applied a leave. Please confirm this action.</p>
-          </body>
-        </html>`;
+                const leave = await LeaveApplication.create({
+                    leaveType: "Unpaid Leave (LWP)",
+                    fromDate: from,
+                    toDate: to,
+                    periodOfLeave: "full day",
+                    reasonForLeave: "Didn't punch in until EOD",
+                    employee: emp._id,
+                    status: "approved",
+                    approvers: {
+                        lead: "approved",
+                        head: "approved",
+                        hr: "approved",
+                        manager: "approved",
+                    },
+                });
 
-            const hrEmails = emp.team?.hr?.map(hr => hr.Email).filter(Boolean) || [];
+                await Employee.findByIdAndUpdate(emp._id, {
+                    $push: { leaveApplication: leave._id },
+                });
 
-            if (hrEmails.length > 0) {
-                emailPromises.push(sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: hrEmails.join(", "),
-                    Subject,
-                    HtmlBody: htmlContent,
-                }));
+                const Subject = "Full-day Leave Applied (Unpaid Leave)";
+                const htmlContent = `
+                    <html>
+                        <body>
+                            <p>Dear HR,</p>
+                            <h2>${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.</h2>
+                            <p>As a result, the HRM system has automatically applied a leave. Please confirm this action.</p>
+                        </body>
+                    </html>
+                `;
 
-                emp.team.hr.forEach(hr => {
+                const hrList = Array.isArray(emp.team?.hr)
+                    ? emp.team.hr.filter(hr => hr?.Email && hr?.company)
+                    : [];
+
+                // Send email to all HRs
+                hrList.forEach(hr => {
+                    emailPromises.push(
+                        sendMail(
+                            hr.company,
+                            "attendanceManagement",
+                            "noPunchIn",
+                            {
+                                to: hr.Email,
+                                subject: Subject,
+                                html: htmlContent,
+                                from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                            }
+                        )
+                    );
+
+                    // Push notification
                     if (hr.fcmToken) {
-                        sendPushNotification({
-                            token: hr.fcmToken,
-                            title: Subject,
-                            body: `${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.`,
-                            path: `${process.env.FRONTEND_BASE_URL}/emp/job-desk/leave`,
-                        });
+                        pushNotification(
+                            emp.company,
+                            "attendanceManagement",
+                            "noPunchIn",
+                            {
+                                tokens: hr.fcmToken,
+                                title: Subject,
+                                body: `${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.`
+                            }
+                        );
                     }
                 });
-            }
 
-            return leave;
-        }));
+                return leave;
+            })
+        );
 
         await Promise.all(emailPromises);
 
@@ -486,7 +511,11 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
               </body>
             </html>`;
                 } else {
-                    // Check for existing approved permissions this month
+                    // ✅ Check for existing approved permissions this month using dynamic policy
+                    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+                    const attendancePolicy = await getAttendancePolicy(companyId);
+                    const monthlyPermissionLimit = attendancePolicy.monthlyPermissionLimit || 2;
+
                     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
                     const empPermissions = await LeaveApplication.find({
                         employee: emp._id,
@@ -495,7 +524,7 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
                         status: "approved"
                     });
 
-                    if (empPermissions.length >= 2) {
+                    if (empPermissions.length >= monthlyPermissionLimit) {
                         // Convert to Half-day LOP after 2 permissions
                         leaveAppData = {
                             ...baseLeaveData,
@@ -544,13 +573,44 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
                 emp.leaveApplication.push(leaveRecord._id);
                 await emp.save();
 
-                // Notify employee
-                await sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: emp.Email,
-                    Subject: subject,
-                    HtmlBody: htmlContent
-                });
+                // Notify employee via email
+                await sendMail(
+                    getCompanyIdFromToken(req.headers["authorization"]),
+                    "attendanceManagement",
+                    "latePunchNotifications",
+                    {
+                        to: emp.Email,
+                        subject: subject,
+                        html: htmlContent,
+                        from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                    }
+                );
+
+                // Push notification for late punch response
+                if (emp.fcmToken) {
+                    const notificationMessage = `Your late punch-in has been ${body.lateLogin.status}. ${subject}.`;
+                    await pushNotification(
+                        getCompanyIdFromToken(req.headers["authorization"]),
+                        "attendanceManagement",
+                        "latePunchNotifications",
+                        {
+                            tokens: emp.fcmToken,
+                            title: subject,
+                            body: notificationMessage
+                        }
+                    );
+                }
+
+                // Save notification to employee's notifications array
+                const notification = {
+                    company: getCompanyIdFromToken(req.headers["authorization"]),
+                    title: subject,
+                    message: `Your late punch-in has been ${body.lateLogin.status}. Please check your email for details.`
+                };
+
+                emp.notifications = emp.notifications || [];
+                emp.notifications.push(notification);
+                await emp.save();
             }
         }
 
@@ -691,6 +751,8 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
             startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         }
+        startOfMonth.setHours(0, 0, 0, 0);
+        endOfMonth.setHours(23, 59, 59, 0);
         const who = req?.query?.who;
         const team = await Team.findOne({ [who]: id }).exec();
 
@@ -771,10 +833,8 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             [new Date(daterangeValue[0]), new Date(new Date(daterangeValue[1]))] :
             [new Date(now.getFullYear(), now.getMonth(), 1), now];
         if (daterangeValue?.length > 0) {
-            // reduce one day from start the date for exact filter
-            startOfMonth.setDate(startOfMonth.getDate() - 1)
-            // add one day from end the date for exact filter
-            endOfMonth.setDate(endOfMonth.getDate() + 1)
+            startOfMonth.setHours(0, 0, 0, 0);
+            endOfMonth.setHours(23, 59, 59, 0);
         }
         let totalEmpWorkingHours = 0;
         let totalLeaveDays = 0;
@@ -934,12 +994,17 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
                                     </body>
                                 </html>`
 
-        sendMail({
-            From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-            To: emp.Email,
-            Subject: `You have punched in for the ${emp.clockIns[0].date}`,
-            HtmlBody: htmlContent
-        });
+        await sendMail(
+            emp?.company?._id,
+            "attendanceManagement",
+            "dailyReports",
+            {
+                to: emp.Email,
+                subject: `You have punched in for the ${emp.clockIns[0].date}`,
+                html: htmlContent,
+                from: `<${process.env.FROM_MAIL}> (Nexshr)`
+            }
+        );
         return res.send({ message: "We have send mail for you have completed 8 working hours." })
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
@@ -954,7 +1019,7 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
         if (!companyId) {
             return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
         }
-        let filterObj = {company: companyId};
+        let filterObj = { company: companyId };
         const dateRangeValue = req.query?.dateRangeValue
         if (dateRangeValue && dateRangeValue.length > 1) {
             const startDate = new Date(dateRangeValue[0])
@@ -962,7 +1027,7 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
             const endDate = new Date(dateRangeValue[1])
             endDate.setHours(23, 59, 59, 0);
             filterObj = {
-                ... filterObj,
+                ...filterObj,
                 date: { $gte: startDate, $lte: endDate }
             }
         }
@@ -1035,89 +1100,150 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.put("/add-late-login/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        // check is valid id
         const { id } = req.params;
         if (!checkValidObjId(id)) {
-            return res.status(400).send({ error: "Invalid or missing Employee Id" })
+            return res.status(400).send({ error: "Invalid or missing Employee Id" });
         }
 
-        const emp = await Employee.findById(id, "Email team FirstName LastName")
+        const emp = await Employee.findById(id, "Email team FirstName LastName company")
             .populate({
-                path: "team", select: "hr",
-                populate: { path: "hr", select: "FirstName LastName Email fcmToken" }
+                path: "team",
+                select: "hr",
+                populate: { path: "hr", select: "FirstName LastName Email fcmToken company" }
             });
-        // check employee is exists
+
         if (!emp) {
-            return res.status(404).send({ error: "employee data not found" })
+            return res.status(404).send({ error: "Employee data not found" });
         }
-        // check employee in a team
         if (!emp.team) {
-            return res.status(404).send({ error: "Your are not in any team" })
+            return res.status(404).send({ error: "You are not in any team" });
         }
-        // trying to update data is exists
+
         const clockinData = await ClockIns.exists({ _id: req.body._id });
         if (!clockinData) {
-            return res.status(400).send({ error: "clockins data not found" })
+            return res.status(400).send({ error: "Clock-in data not found" });
         }
+
         const updatedData = setTimeHolderForAllActivities(req.body);
-        // check isAdded lateLogin data
+
         if (updatedData.lateLogin && Object.keys(updatedData.lateLogin).length > 0) {
-            const updateClockins = await ClockIns.findByIdAndUpdate(req.body._id, updatedData, { new: true });
-            // Send Email and Notification
+            const updateClockins = await ClockIns.findByIdAndUpdate(
+                req.body._id,
+                updatedData,
+                { new: true }
+            );
+
             const { lateReason, lateType } = updateClockins.lateLogin;
-
             const subject = "Late Punch Submission Received";
-            const hrEmails = emp.team.hr?.length > 0 ? emp.team.hr.map((user) => user.Email).filter((item) => Boolean(item)) : [];
-            const hrFCMTokens = emp.team.hr?.length > 0 ? emp.team.hr.map((user) => user.fcmToken).filter((item) => Boolean(item)) : [];
-            sendMail({
-                From: `<${emp.Email}> (Nexshr)`,
-                To: hrEmails.join(", "),
-                Subject: subject,
-                HtmlBody: `<html>
-  <body>
-    <h2>Late Punch Submission Received</h2>
-    <p>
-      This is to inform you that a late punch-in entry has been submitted for <strong>${getCurrentTimeInMinutes().toLocaleDateString()}</strong>.
-      The employee has provided the following details:
-    </p>
-    <ul>
-      <li><strong>Late Type:</strong> ${lateType}</li>
-      <li><strong>Reason:</strong> ${lateReason}</li>
-    </ul>
-    <p>
-      Please review the submitted reason and take appropriate action as per company policy.
-      If the reason is valid and approved, no attendance deductions will be applied.
-      If rejected, the system will automatically apply a half-day Loss of Pay (LOP).
-    </p>
-    <p>Kindly respond to the request at your earliest convenience through the HRM portal.</p>
-    <p>Thank you.</p>
-    <p>Regards,</p>
-    <p>${emp.team.hr[0]?.FirstName}</p>
-    <p>HR Department</p>
-  </body>
-</html>
-`,
-            });
-            const path = `${process.env.FRONTEND_BASE_URL}/hr/attendance/late-punch`
-            hrFCMTokens.forEach(async (token) => {
-                await sendPushNotification({
-                    token,
-                    title: subject,
-                    body: `${emp.FirstName} has submitted late login data. Kindly review and respond accordingly.`,
-                    path
-                });
-            })
 
-            return res.send({ message: "notified to hr successfully", notifiedFor: hrEmails })
+            // Extract HR Emails and Tokens safely
+            const hrEmails = emp.team.hr
+                ?.filter(hr => hr?.Email)
+                .map(hr => hr.Email) || [];
+
+            const hrFCMTokens = emp.team.hr
+                ?.filter(hr => hr?.fcmToken)
+                .map(hr => hr.fcmToken) || [];
+
+            // Prepare email body
+            const htmlContent = `
+                <html>
+                  <body>
+                    <h2>Late Punch Submission Received</h2>
+                    <p>
+                      This is to inform you that a late punch-in entry has been submitted for 
+                      <strong>${new Date().toLocaleDateString()}</strong>.
+                      The employee has provided the following details:
+                    </p>
+                    <ul>
+                      <li><strong>Late Type:</strong> ${lateType}</li>
+                      <li><strong>Reason:</strong> ${lateReason}</li>
+                    </ul>
+                    <p>
+                      Please review the submitted reason and take appropriate action as per company policy.
+                      If the reason is valid and approved, no attendance deductions will be applied.
+                      If rejected, the system will automatically apply a half-day Loss of Pay (LOP).
+                    </p>
+                    <p>Kindly respond to the request at your earliest convenience through the HRM portal.</p>
+                    <p>Thank you.</p>
+                    <p>Regards,</p>
+                    <p>${emp.FirstName} ${emp.LastName}</p>
+                    <p>HR Department</p>
+                  </body>
+                </html>
+            `;
+
+            // Send email only if HR emails exist
+            if (hrEmails.length > 0) {
+                await sendMail(
+                    emp?.company?._id || getCompanyIdFromToken(req.headers["authorization"]),
+                    "attendanceManagement",
+                    "latePunchNotifications",
+                    {
+                        to: hrEmails.join(", "),
+                        subject: subject,
+                        html: htmlContent,
+                        from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                    }
+                );
+            }
+
+            // Push notifications only if tokens exist
+            if (hrFCMTokens.length > 0) {
+                await Promise.all(
+                    hrFCMTokens.map(token =>
+                        pushNotification(
+                            emp?.company?._id || getCompanyIdFromToken(req.headers["authorization"]),
+                            "attendanceManagement",
+                            "latePunchNotifications",
+                            {
+                                tokens: token,
+                                title: subject,
+                                body: `${emp.FirstName} has submitted late login data. Kindly review and respond accordingly.`
+                            }
+                        )
+                    )
+                );
+
+                // Save notifications to HR members
+                if (emp.team.hr && emp.team.hr.length > 0) {
+                    const notification = {
+                        company: emp?.company?._id || getCompanyIdFromToken(req.headers["authorization"]),
+                        title: subject,
+                        message: `${emp.FirstName} has submitted late login data. Kindly review and respond accordingly.`
+                    };
+
+                    for (const hrMember of emp.team.hr) {
+                        const fullHR = await Employee.findById(hrMember._id, "notifications");
+                        if (fullHR) {
+                            fullHR.notifications = fullHR.notifications || [];
+                            fullHR.notifications.push(notification);
+                            await fullHR.save();
+                        }
+                    }
+                }
+            }
+
+            return res.send({
+                message: "Notified HR successfully",
+                notifiedFor: hrEmails
+            });
+
         } else {
-            return res.status(400).send({ error: "lateLogin data is required" })
+            return res.status(400).send({ error: "lateLogin data is required" });
         }
+
     } catch (error) {
-        errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.log("error add lateLogin data", error)
-        return res.status(500).send({ error: error.message })
+        errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT
+        });
+        console.error("Error in add-late-login:", error);
+        return res.status(500).send({ error: error.message });
     }
-})
+});
 
 router.post("/ontime/:type", async (req, res) => {
     try {
@@ -1149,14 +1275,20 @@ router.post("/ontime/:type", async (req, res) => {
             }
         })
 
-        activeEmps.map((emp) => {
+        const emailPromises = activeEmps.map(async (emp) => {
             const officeStartAt = changeClientTimezoneDate(emp?.workingTimePattern?.StartingTime).toLocaleTimeString();
-            const officeEndAt = changeClientTimezoneDate(emp?.workingTimePattern?.FinishingTime).toLocaleTimeString()
-            sendMail({
-                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                To: emp.Email,
-                Subject: type === "login" ? "Login Remainder" : "Logout Remainder",
-                HtmlBody: `
+            const officeEndAt = changeClientTimezoneDate(emp?.workingTimePattern?.FinishingTime).toLocaleTimeString();
+            const subject = type === "login" ? "Login Reminder" : "Logout Reminder";
+
+            // Send email
+            await sendMail(
+                emp?.company?._id,
+                "attendanceManagement",
+                type === "login" ? "loginReminder" : "logoutReminder",
+                {
+                    to: emp.Email,
+                    subject: subject,
+                    html: `
                 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1182,8 +1314,45 @@ router.post("/ontime/:type", async (req, res) => {
     </div>
 </body>
 </html>
-`  })
-        })
+`,
+                    from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                }
+            );
+
+            // Send push notification if FCM token exists
+            if (emp.fcmToken) {
+                await pushNotification(
+                    emp?.company?._id,
+                    "attendanceManagement",
+                    type === "login" ? "loginReminder" : "logoutReminder",
+                    {
+                        tokens: emp.fcmToken,
+                        title: subject,
+                        body: type === "login" ?
+                            `Please ensure that you log in on time at ${officeStartAt}.` :
+                            `Please ensure that you log out on time at ${officeEndAt}.`
+                    }
+                );
+            }
+
+            // Save notification to employee
+            const notification = {
+                company: emp?.company?._id,
+                title: subject,
+                message: type === "login" ?
+                    `Please ensure that you log in on time at ${officeStartAt}.` :
+                    `Please ensure that you log out on time at ${officeEndAt}.`
+            };
+
+            const fullEmp = await Employee.findById(emp._id, "notifications");
+            if (fullEmp) {
+                fullEmp.notifications = fullEmp.notifications || [];
+                fullEmp.notifications.push(notification);
+                await fullEmp.save();
+            }
+        });
+
+        await Promise.all(emailPromises);
         return res.send({ message: "Email sent successfully for all employees." })
 
     } catch (error) {
@@ -1204,11 +1373,14 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
         const emp = await Employee.findById(id, "FirstName LastName Email fcmToken company").populate("company");
         // send email notification
         const Subject = `${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`;
-        sendMail({
-            From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-            To: emp.Email,
-            Subject,
-            HtmlBody: `<html lang="en">
+        await sendMail(
+            emp?.company?._id,
+            "attendanceManagement",
+            "breakReminders",
+            {
+                to: emp.Email,
+                subject: Subject,
+                html: `<html lang="en">
                                     <head>
                                         <meta charset="UTF-8">
                                             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1228,16 +1400,38 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
                                                     </div>
                                                 </div>
                                             </body>
-                                        </html> `
-        });
+                                        </html>`,
+                from: `<${process.env.FROM_MAIL}> (Nexshr)`
+            }
+        );
 
-        // send notification even ask the reason for late
-        await sendPushNotification({
-            token: emp.fcmToken,
+        // send push notification
+        if (emp.fcmToken) {
+            await pushNotification(
+                emp.company._id,
+                "attendanceManagement",
+                "overtimeAlerts",
+                {
+                    tokens: emp.fcmToken,
+                    title: Subject,
+                    body: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`
+                }
+            );
+        }
+
+        // Save notification to employee
+        const notification = {
+            company: emp.company._id,
             title: Subject,
-            body: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`,
-            type: "late reason"
-        });
+            message: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`
+        };
+
+        const fullEmp = await Employee.findById(emp._id, "notifications");
+        if (fullEmp) {
+            fullEmp.notifications = fullEmp.notifications || [];
+            fullEmp.notifications.push(notification);
+            await fullEmp.save();
+        }
         res.send({ message: "Sent mail to employee successfully." })
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })

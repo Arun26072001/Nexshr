@@ -1,73 +1,25 @@
 // hooks/employeeHooks.js
 
+const { sendMail, pushNotification } = require("../Reuseable_functions/notifyFunction");
+const { getNotificationSettings } = require("../services/NotificationService");
+
 module.exports = function attachEmployeeHooks(Employee, schema) {
     const schedule = require("node-schedule");
-    const sendMail = require("../routes/mailSender");
 
     function isValidDate(value) {
         const date = new Date(value);
         return !isNaN(date.getTime()) && date.getHours() !== 0;
     }
 
-    schema.post("save", async function (doc) {
-        const emp = doc.toObject();
-        const { annualLeaveYearStart } = emp;
-
-        if (!annualLeaveYearStart) return;
-        const annualLeaveYearStartDate = new Date(annualLeaveYearStart);
-        const [date, month] = [annualLeaveYearStartDate.getDate(), annualLeaveYearStartDate.getMonth()]
-
-        schedule.scheduleJob(`0 0 8 ${date} ${month} *`, async () => {
-            const renewedRemainingLeaveDays = {};
-            const typesOfLeaveCount = emp?.typesOfLeaveCount;
-            if (typesOfLeaveCount && Object.values(typesOfLeaveCount).length > 0) {
-                const renewableFields = Object.entries(typesOfLeaveCount).filter(([key, value]) => key !== "Permission");
-                renewableFields.map(([name, value]) => renewedRemainingLeaveDays[name] = value)
-            }
-            const updatedEmpObj = {
-                ...emp,
-                annualLeaveYearStart: `${new Date().getFullYear()}-${month}-${date}`,
-                typesOfLeaveRemainingDays: renewedRemainingLeaveDays
-            }
-            await Employee.findByIdAndUpdate(emp._id, updatedEmpObj);
-            if (emp.Email && emp.fcmToken) {
-                const title = "Your annual leave entitlement has been renewed.";
-                const message = `Your annual leave days have been successfully renewed as part of the yearly leave cycle.
-       You can now view and utilize your updated leave balance for the current period.
-        Please contact HR if you have any questions or need further assistance.`;
-                if (creator?.fcmToken) {
-                    await sendPushNotification({
-                        token: creator.fcmToken,
-                        title,
-                        body: message,
-                    });
-                }
-
-                await sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: creator.Email,
-                    Subject: title,
-                    TextBody: message
-                });
-            }
-        });
-    });
-
-    schema.post("findOneAndUpdate", async function (doc) {
-        if (!doc) return;
-
-        const emp = doc.toObject();
-        const { annualLeaveYearStart } = emp;
-
+    function scheduleAnnualLeaveRenewal(emp) {
+        const { annualLeaveYearStart, company } = emp;
         if (!annualLeaveYearStart || !isValidDate(annualLeaveYearStart)) return;
 
         const dateObj = new Date(annualLeaveYearStart);
         const date = dateObj.getDate();
-        const month = dateObj.getMonth() + 1; // JS months are 0-based
-
+        const month = dateObj.getMonth() + 1;
 
         schedule.scheduleJob(`0 0 8 ${date} ${month} *`, async () => {
-
             const renewedRemainingLeaveDays = {};
             const typesOfLeaveCount = emp?.typesOfLeaveCount;
 
@@ -89,22 +41,112 @@ module.exports = function attachEmployeeHooks(Employee, schema) {
             const title = "Your annual leave entitlement has been renewed.";
             const message = `Your annual leave days have been successfully renewed as part of the yearly leave cycle. You can now view and utilize your updated leave balance. Please contact HR if you have any questions.`;
 
-            if (emp?.fcmToken) {
-                await sendPushNotification({
-                    token: emp.fcmToken,
+            await Promise.all([
+                emp?.fcmToken &&
+                pushNotification(company, "employee", "annualLeaveRenewed", {
+                    tokens: emp.fcmToken,
                     title,
                     body: message,
-                });
-            }
+                    path: "/leave/balance",
+                    data: { employeeId: emp._id }
+                }),
 
-            if (emp?.Email) {
-                await sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: emp.Email,
-                    Subject: title,
-                    TextBody: message,
-                });
-            }
+                emp?.Email &&
+                sendMail(company, "employee", "annualLeaveRenewed", {
+                    to: emp.Email,
+                    subject: title,
+                    html: `<p>${message}</p>`
+                })
+            ]);
         });
+    }
+
+    function scheduleBirthdayGreeting(emp) {
+        const { DOB, company } = emp;
+        if (!DOB || !isValidDate(DOB)) return;
+
+        const dob = new Date(DOB);
+        const date = dob.getDate();
+        const month = dob.getMonth() + 1;
+
+        schedule.scheduleJob(`0 0 8 ${date} ${month} *`, async () => {
+            const title = "🎉 Happy Birthday!";
+            const message = `Wishing you a fantastic birthday filled with joy and success. Have a great year ahead!`;
+
+            await Promise.all([
+                emp?.fcmToken &&
+                pushNotification(company, "employee", "birthday", {
+                    tokens: emp.fcmToken,
+                    title,
+                    body: message,
+                    path: "/profile",
+                    data: { employeeId: emp._id }
+                }),
+
+                emp?.Email &&
+                sendMail(company, "employee", "birthday", {
+                    to: emp.Email,
+                    subject: title,
+                    html: `<p>${message}</p>`
+                })
+            ]);
+        });
+    }
+
+    function scheduleWorkAnniversaryGreeting(emp) {
+        const { DOJ, company } = emp;
+        if (!DOJ || !isValidDate(DOJ)) return;
+
+        const doj = new Date(DOJ);
+        const date = doj.getDate();
+        const month = doj.getMonth() + 1;
+
+        schedule.scheduleJob(`0 0 8 ${date} ${month} *`, async () => {
+            const title = "🎉 Happy Work Anniversary!";
+            const message = `Congratulations on your work anniversary! Thank you for being an integral part of the team.`;
+
+            await Promise.all([
+                emp?.fcmToken &&
+                pushNotification(company, "employee", "workAnniversary", {
+                    tokens: emp.fcmToken,
+                    title,
+                    body: message,
+                    path: "/profile",
+                    data: { employeeId: emp._id }
+                }),
+
+                emp?.Email &&
+                sendMail(company, "employee", "workAnniversary", {
+                    to: emp.Email,
+                    subject: title,
+                    html: `<p>${message}</p>`
+                })
+            ]);
+        });
+    }
+
+    schema.post("save", async function (doc) {
+        const emp = doc.toObject();
+        const { employeeManagement } = await getNotificationSettings(emp.company);
+        scheduleAnnualLeaveRenewal(emp);
+        if (employeeManagement["birthday"]) {
+            scheduleBirthdayGreeting(emp);
+        }
+        if (employeeManagement["workAnniversary"]) {
+            scheduleWorkAnniversaryGreeting(emp);
+        }
+    });
+
+    schema.post("findOneAndUpdate", async function (doc) {
+        if (!doc) return;
+        const emp = doc.toObject();
+        const { employeeManagement } = await getNotificationSettings(emp.company);
+        scheduleAnnualLeaveRenewal(emp);
+        if (employeeManagement["birthday"]) {
+            scheduleBirthdayGreeting(emp);
+        }
+        if (employeeManagement["workAnniversary"]) {
+            scheduleWorkAnniversaryGreeting(emp);
+        }
     });
 };

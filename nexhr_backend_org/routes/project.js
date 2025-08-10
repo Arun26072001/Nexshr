@@ -3,10 +3,10 @@ const router = express.Router();
 const { Project } = require('../models/ProjectModel');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHRTeamHigherAuth, verifyTeamHigherAuthority } = require('../auth/authMiddleware');
 const { Task } = require('../models/TaskModel');
-const sendMail = require('./mailSender');
 const { Employee } = require('../models/EmpModel');
 const { Report } = require('../models/ReportModel');
 const { errorCollector, checkValidObjId, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
+const { sendMail } = require('../Reuseable_functions/notifyFunction');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -131,19 +131,24 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const companyId = getCompanyIdFromToken(req.headers["authorization"]);
     if (!companyId) {
-      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+      return res.status(400).send({
+        error: "You are not part of any company. Please check with your higher authorities."
+      });
     }
-    // check EmpId is exists
+
+    // Check creatorId
     const creatorId = req.params.id;
     if (!checkValidObjId(creatorId)) {
       return res.status(400).send({ error: "Invalid creator ID" });
     }
 
+    // Validate request body
     const { error } = ProjectValidation.validate(req.body);
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }
 
+    // Save project
     const project = new Project({
       ...req.body,
       createdBy: creatorId,
@@ -151,12 +156,52 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
     });
 
     await project.save();
-    return res.status(201).send({ message: "Project created successfully", project });
+
+    /** 🔹 Notify assigned employees */
+    if (Array.isArray(req.body.assignedTo) && req.body.assignedTo.length) {
+      const assignedEmployees = await Employee.find(
+        { _id: { $in: req.body.assignedTo } },
+        "Email fcmToken FirstName LastName"
+      );
+
+      const emails = assignedEmployees.map(emp => emp.Email).filter(Boolean);
+      const tokens = assignedEmployees.map(emp => emp.fcmToken).filter(Boolean);
+
+      // Send email notifications
+      await sendMail(companyId, "taskManagement", "createProject", {
+        to: emails,
+        subject: `New Project Assigned: ${project.name}`,
+        html: `<p>Hello,</p>
+               <p>You have been assigned to a new project: <strong>${project.name}</strong>.</p>
+               <p>Please check the HRM portal for more details.</p>`
+      });
+
+      // Send push notifications
+      await pushNotification(companyId, "taskManagement", "createProject", {
+        tokens,
+        title: "New Project Assigned",
+        body: `You have been assigned to project: ${project.name}`,
+        path: `/projects/${project._id}`, // App deep link path
+        data: { projectId: project._id }
+      });
+    }
+
+    return res.status(201).send({
+      message: "Project created successfully",
+      project
+    });
+
   } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+    await errorCollector({
+      url: req.originalUrl,
+      name: error.name,
+      message: error.message,
+      env: process.env.ENVIRONMENT
+    });
     return res.status(500).send({ error: error.message });
   }
 });
+
 
 //
 // ✅ 5. Update a project

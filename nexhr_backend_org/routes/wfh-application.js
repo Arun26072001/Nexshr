@@ -3,13 +3,13 @@ const { toZonedTime } = require('date-fns-tz');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationModel");
 const { Employee } = require("../models/EmpModel");
-const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
 const { formatDate, mailContent, sumLeaveDays, changeClientTimezoneDate, errorCollector, checkDateIsHoliday, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
-const { sendPushNotification } = require("../auth/PushNotification");
+const { pushNotification, sendMail } = require("../Reuseable_functions/notifyFunction");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
 const { LeaveApplication } = require("../models/LeaveAppModel");
+const { getLeavePolicy } = require("../services/policyService");
 const router = express.Router();
 
 function generateWfhEmail(empData, fromDateValue, toDateValue, reason, type) {
@@ -169,12 +169,17 @@ router.get("/make-know", async (req, res) => {
 `;
 
                 // Send Email
-                await sendMail({
-                    From: `<${emp.Email}> (Nexshr)`,
-                    To: member.Email,
-                    Subject,
-                    HtmlBody: htmlContent,
-                });
+                await reminders(
+                    emp?.company?._id,
+                    "wfhManagement",
+                    "reminders",
+                    {
+                        to: member.Email,
+                        subject: Subject,
+                        html: htmlContent,
+                        from: `<${emp.Email}> (Nexshr)`
+                    }
+                );
 
                 // Save Notification
                 const notification = {
@@ -190,11 +195,16 @@ router.get("/make-know", async (req, res) => {
                 }
                 // Push Notification
                 if (member.fcmToken) {
-                    await sendPushNotification({
-                        token: member.fcmToken,
-                        title: Subject,
-                        body: message
-                    });
+                    await pushNotification(
+                        emp?.company?._id,
+                        "wfhManagement",
+                        "reminders",
+                        {
+                            tokens: member.fcmToken,
+                            title: Subject,
+                            body: message
+                        }
+                    );
                 }
             }
 
@@ -248,7 +258,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(400).send({ error: "You can't apply WFH, because you applied leave during this period." })
         }
 
-        // check has more than two team members in wfh
+        // ✅ Check team WFH count using dynamic policy
+        const leavePolicy = await getLeavePolicy(companyId);
+        const teamWfhLimit = leavePolicy.teamWfhLimit || 2;
+
         const team = await Team.findOne({ employees: id }, "employees").exec();
         if (team && team.employees.length > 0) {
             const wfhEmps = await WFHApplication.find({
@@ -260,8 +273,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 toDate: { $gte: fromDateObj }
             })
 
-            if (wfhEmps.length === 2) {
-                return res.status(400).send({ error: "Already two members are approved for WFH in this time period." })
+            if (wfhEmps.length >= teamWfhLimit) {
+                return res.status(400).send({ error: `Already ${teamWfhLimit} members are approved for WFH in this time period.` })
             }
         }
 
@@ -347,22 +360,32 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     message,
                 };
 
-                sendMail({
-                    From: `<${emp.Email}> (Nexshr)`,
-                    To: member.Email,
-                    Subject: title,
-                    HtmlBody: generateWfhEmail(emp, fromDateObj, toDateObj, reason),
-                });
+                await sendMail(
+                    emp?.company?._id,
+                    "wfhManagement",
+                    "application",
+                    {
+                        to: member.Email,
+                        subject: title,
+                        html: generateWfhEmail(emp, fromDateObj, toDateObj, reason),
+                        from: `<${emp.Email}> (Nexshr)`
+                    }
+                );
 
                 const fullEmp = await Employee.findById(member._id, "notifications");
                 fullEmp.notifications.push(notification);
                 await fullEmp.save();
 
-                await sendPushNotification({
-                    token: member.fcmToken,
-                    title: notification.title,
-                    body: notification.message
-                });
+                await pushNotification(
+                    emp?.company?._id,
+                    "wfhManagement",
+                    "application",
+                    {
+                        tokens: member.fcmToken,
+                        title: notification.title,
+                        body: notification.message
+                    }
+                );
                 notify.push(member.Email);
             }
         }
@@ -623,7 +646,7 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
         // get company ID from token
         const companyId = getCompanyIdFromToken(req.headers["authorization"]);
         if (!companyId) {
-            return res.status(400).send({error: "You are not part of any company. Please check with your higher authorities."});
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." });
         }
         const now = new Date();
         const who = req.query?.who || "";
@@ -713,7 +736,7 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     }
 });
 
-router.put("/reject-wfh", async (req, res) => {
+router.put("/final-reponse-wfh", async (req, res) => {
     try {
         const today = new Date();
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
@@ -729,7 +752,11 @@ router.put("/reject-wfh", async (req, res) => {
         if (!wfhReqs.length) {
             return res.status(200).send({ message: "No pending WFH requests found for today." });
         }
-
+        const companyId = wfh.employee.company._id;
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        const { currentDayPendingApplication } = await getLeavePolicy(companyId)
         await Promise.all(wfhReqs.map(async (wfh) => {
             // check has more than two team members in wfh
             const empId = wfh.employee?._id;
@@ -737,29 +764,28 @@ router.put("/reject-wfh", async (req, res) => {
                 console.log("empId not found, please check employee is exists");
                 return;
             }
-            const team = await Team.findOne({ employees: empId }, "employees").exec();
-            let wfhEmps = [];
-            if (team && team.employees.length > 0) {
-                wfhEmps = await WFHApplication.find({
-                    isDeleted: false,
-                    employee: { $in: team.employees },
-                    status: "approved",
-                    fromDate: { $lte: wfh.toDate },
-                    toDate: { $gte: wfh.fromDate }
-                })
-            } else {
-                console.log(`${wfh.employee?.FirstName} is currently not assigned to any team. Kindly confirm with your HR`);
-                return;
-            }
-
+            // const team = await Team.findOne({ employees: empId }, "employees").exec();
+            // let wfhEmps = [];
+            // if (team && team.employees.length > 0) {
+            //     wfhEmps = await WFHApplication.find({
+            //         isDeleted: false,
+            //         employee: { $in: team.employees },
+            //         status: "approved",
+            //         fromDate: { $lte: wfh.toDate },
+            //         toDate: { $gte: wfh.fromDate }
+            //     })
+            // } else {
+            //     console.log(`${wfh.employee?.FirstName} is currently not assigned to any team. Kindly confirm with your HR`);
+            //     return;
+            // }
             let approvers = {};
             for (const [key, value] of Object.entries(wfh.approvers)) {
-                approvers[key] = wfhEmps.length >= 2 ? "rejected" : "approved";
+                approvers[key] = currentDayPendingApplication === "reject" ? "rejected" : currentDayPendingApplication === "auto_approve" ? "approved" : "pending";
             }
 
             const updateReq = {
                 ...req.body,
-                status: wfhEmps.length >= 2 ? "rejected" : "approved",
+                status: currentDayPendingApplication === "reject" ? "rejected" : currentDayPendingApplication === "auto_approve" ? "approved" : "pending",
                 approvers
             };
 
@@ -812,12 +838,17 @@ router.put("/reject-wfh", async (req, res) => {
 `;
             const Subject = `WFH Request ${reqStatus === "approved" ? "Approved" : "Rejected"}`
             if (employee.Email) {
-                await sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: employee?.Email,
-                    Subject,
-                    HtmlBody: htmlContent,
-                });
+                await sendMail(
+                    employee?.company?._id,
+                    "wfhManagement",
+                    "application",
+                    {
+                        to: employee?.Email,
+                        subject: Subject,
+                        html: htmlContent,
+                        from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                    }
+                );
 
                 // Save Notification
                 const notification = {
@@ -834,11 +865,16 @@ router.put("/reject-wfh", async (req, res) => {
 
                 // Push Notification
                 if (employee.fcmToken) {
-                    await sendPushNotification({
-                        token: employee.fcmToken,
-                        title: Subject,
-                        body: content
-                    });
+                    await pushNotification(
+                        employee?.company?._id,
+                        "wfhManagement",
+                        "wfhAutoProcessed",
+                        {
+                            tokens: employee.fcmToken,
+                            title: Subject,
+                            body: content
+                        }
+                    );
                 }
             }
         }));
@@ -860,7 +896,11 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const { approvers, fromDate, toDate, status, employee } = req.body;
         let updatedApprovers = approvers;
         if (status === "approved") {
-            // ✅ Check team WFH count
+            // ✅ Check team WFH count using dynamic policy
+            const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+            const leavePolicy = await getLeavePolicy(companyId);
+            const teamWfhLimit = leavePolicy.teamWfhLimit || 2;
+
             const team = await Team.findOne({ employees: employee }, "employees");
             if (team?.employees?.length) {
                 const overlappingWFHs = await WFHApplication.find({
@@ -871,8 +911,8 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     toDate: { $gte: fromDate },
                 });
 
-                if (overlappingWFHs.length >= 2) {
-                    return res.status(400).json({ error: "Already two members are approved for WFH in this time period." });
+                if (overlappingWFHs.length >= teamWfhLimit) {
+                    return res.status(400).json({ error: `Already ${teamWfhLimit} members are approved for WFH in this time period.` });
                 }
             }
             if (approvers && Object.keys(approvers).length > 0) {
@@ -904,7 +944,11 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!allPending) {
             const employeeId = wfhApp.employee;
 
-            // ✅ Check team WFH count
+            // ✅ Check team WFH count using dynamic policy
+            const companyIdForPolicy = getCompanyIdFromToken(req.headers["authorization"]);
+            const leavePolicy = await getLeavePolicy(companyIdForPolicy);
+            const teamWfhLimit = leavePolicy.teamWfhLimit || 2;
+
             const team = await Team.findOne({ employees: employeeId }, "employees");
             if (team?.employees?.length) {
                 const overlappingWFHs = await WFHApplication.find({
@@ -915,8 +959,8 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     toDate: { $gte: fromDate },
                 });
 
-                if (overlappingWFHs.length >= 2) {
-                    return res.status(400).json({ error: "Already two members are approved for WFH in this time period." });
+                if (overlappingWFHs.length >= teamWfhLimit) {
+                    return res.status(400).json({ error: `Already ${teamWfhLimit} members are approved for WFH in this time period.` });
                 }
             }
 
@@ -1010,12 +1054,17 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                 await Promise.all(members.map(async (member) => {
                     // Email
-                    await sendMail({
-                        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                        To: member.Email,
-                        Subject,
-                        HtmlBody: mailContent(emailType, fromDate, toDate, emp, "WFH", actionBy, member)
-                    });
+                    await sendMail(
+                        emp.company._id,
+                        "wfhManagement",
+                        updatedStatus === "approved" ? "approval" : "rejection",
+                        {
+                            to: member.Email,
+                            subject: Subject,
+                            html: mailContent(emailType, fromDate, toDate, emp, "WFH", actionBy, member),
+                            from: `<${process.env.FROM_MAIL}> (Nexshr)`
+                        }
+                    );
 
                     // Notification
                     const message = `${emp.FirstName}'s WFH request from ${fromStr} to ${toStr} has been ${statusText} by ${actionBy}`;
@@ -1030,11 +1079,16 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         fullEmp.notifications.push(notification);
                         await fullEmp.save();
 
-                        await sendPushNotification({
-                            token: member.fcmToken,
-                            title: Subject,
-                            body: message,
-                        });
+                        await pushNotification(
+                            emp.company._id,
+                            "wfhManagement",
+                            "wfhResponseNotification",
+                            {
+                                tokens: member.fcmToken,
+                                title: Subject,
+                                body: message
+                            }
+                        );
                     }
                 }));
             }

@@ -231,7 +231,8 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
           'holiday'
         )}
 
-        {Leave === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
+        {Leave === 'allow' || [decodedData?.isTeamHead, decodedData?.isTeamLead].includes(true) ||
+          (whoIs === "manager" && isTeamManager) ?
           renderSubMenu(
             'leave',
             [
@@ -240,9 +241,10 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
             ],
             leaveIcon,
             'Leave'
-          )}
+          ) : null
+        }
 
-        {(
+        {/* {(
           (['emp'].includes(whoIs) && [decodedData?.isTeamHead, decodedData?.isTeamLead].includes(true)) ||
           (whoIs === "manager" && isTeamManager)
         ) &&
@@ -253,7 +255,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
             ],
             leaveIcon,
             'Leave'
-          )}
+          )} */}
 
         {/* {(
           (whoIs === "emp" && [decodedData?.isTeamHead, decodedData?.isTeamLead].includes(true)) ||

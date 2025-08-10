@@ -3,10 +3,10 @@ const router = express.Router();
 const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHREmployee, verifyAdminHRTeamHigherAuth, verifyTeamHigherAuthority, verifyTeamHigherAuthorityEmp } = require("../auth/authMiddleware");
 const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
-const sendMail = require("./mailSender");
 const { errorCollector, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
+const { sendMail } = require("../Reuseable_functions/notifyFunction");
 
-const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
+const sendInvitationEmail = async (emp, roleLabel, team, creator, module, action) => {
     const frontendUrl = process.env.REACT_APP_API_URL;
     const empName = `${emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)} ${emp.LastName}`;
     const CompanyName = creator.company.CompanyName;
@@ -30,7 +30,7 @@ const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
         </div>
     `;
 
-    await sendMail({
+    await sendMail(emp.company, module, action,{
         From: `<${creator.Email}> (Nexshr)`,
         To: emp.Email,
         Subject: `You're invited to join the ${team.teamName} team at ${CompanyName}`,
@@ -220,7 +220,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
                     emp.team = newTeam._id;
                     await emp.save();
                     const roleLabel = role === "employees" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
-                    await sendInvitationEmail(emp, roleLabel, req.body, creator);
+                    await sendInvitationEmail(emp, roleLabel, req.body, creator, "teamManagement", "welcomeTeamate" );
                 });
             })
         );

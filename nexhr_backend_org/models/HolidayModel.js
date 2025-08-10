@@ -11,6 +11,9 @@ const HolidaySchema = new mongoose.Schema({
     isDeleted: { type: Boolean, default: false }
 }, { timestamps: true })
 
+// Attach hooks for upcoming holiday notifications
+require("../ModelChangeEvents/holidayHook")(HolidaySchema);
+
 const Holiday = mongoose.model("holidays", HolidaySchema);
 
 const HolidayValidation = Joi.object().keys({

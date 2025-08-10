@@ -3,12 +3,12 @@ const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware"
 const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
-const sendMail = require("./mailSender");
+const { sendMail } = require("../Reuseable_functions/notifyFunction");
 const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks, errorCollector, checkValidObjId, getCompanyIdFromToken, removeImgsFromServer, getTimeFromDateOrTimeData } = require("../Reuseable_functions/reusableFunction");
-const { sendPushNotification } = require("../auth/PushNotification");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { PlannerType } = require("../models/PlannerTypeModel");
 const { Report } = require("../models/ReportModel");
+const { pushNotification } = require("../Reuseable_functions/notifyFunction");
 const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -395,21 +395,30 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                 // Push Notification
                 if (emp.fcmToken) {
-                    await sendPushNotification({
-                        token: emp.fcmToken,
-                        title: notification.title,
-                        body: messageBody,
-                        // company: creator.company
-                    });
+                    await pushNotification(
+                        emp?.company?._id,
+                        "taskManagement",
+                        "assignment",
+                        {
+                            tokens: emp.fcmToken,
+                            title: notification.title,
+                            body: messageBody
+                        }
+                    );
                 }
 
                 // Email Notification
-                await sendMail({
-                    From: `<${creator.Email}> (Nexshr)`,
-                    To: emp.Email,
-                    Subject: `${createdPersonName} has added you as a ${role} to a task`,
-                    HtmlBody: projectMailContent(emp, creator, creator.company, req.body, "task")
-                });
+                await sendMail(
+                    emp?.company?._id,
+                    "taskManagement",
+                    "assignment",
+                    {
+                        to: emp.Email,
+                        subject: `${createdPersonName} has added you as a ${role} to a task`,
+                        html: projectMailContent(emp, creator, creator.company, req.body, "task"),
+                        from: `<${creator.Email}> (Nexshr)`
+                    }
+                );
             }
         }
 
@@ -597,21 +606,27 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
                     emp.notifications.push(notification);
                     await emp.save();
-
                     if (emp.fcmToken) {
-                        await sendPushNotification({
-                            token: emp.fcmToken,
-                            title: notification.title,
-                            body: message,
-                            // company: emp.company
-                        });
+                        await pushNotification(
+                            emp?.company?._id,
+                            "taskManagement",
+                            "completion",
+                            {
+                                tokens: emp.fcmToken,
+                                title: notification.title,
+                                body: message
+                            }
+                        );
                     }
 
-                    await sendMail({
-                        From: `<${empData.Email}> (Nexshr)`,
-                        To: assignedPerson.Email,
-                        Subject: `Your assigned task (${req.body.title}) is completed`,
-                        HtmlBody: `
+                    await sendMail(
+                        assignedPerson?.company?._id,
+                        "taskManagement",
+                        "completion",
+                        {
+                            to: assignedPerson.Email,
+                            subject: `Your assigned task (${req.body.title}) is completed`,
+                            html: `
                 <!DOCTYPE html>
                 <html>
                 <head><meta charset="UTF-8" /></head>
@@ -628,8 +643,10 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                   </div>
                 </body>
                 </html>
-              `
-                    });
+              `,
+                            from: `<${empData.Email}> (Nexshr)`
+                        }
+                    );
                 })
             );
         }
@@ -637,12 +654,17 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         // Send email notifications to newly assigned employees
         await Promise.all(emps.map(emp => {
             // const empName = `${emp.FirstName} ${emp.LastName}`;
-            return sendMail({
-                From: `<${assignedPerson.Email}> (Nexshr)`,
-                To: emp.Email,
-                Subject: `${assignedPersonName} has assigned a task to you`,
-                HtmlBody: projectMailContent(emp, assignedPerson, assignedPerson.company, req.body, "task")
-            });
+            return sendMail(
+                emp?.company?._id,
+                "taskManagement",
+                "assignment",
+                {
+                    to: emp.Email,
+                    subject: `${assignedPersonName} has assigned a task to you`,
+                    html: projectMailContent(emp, assignedPerson, assignedPerson.company, req.body, "task"),
+                    from: `<${assignedPerson.Email}> (Nexshr)`
+                }
+            );
         }));
 
         return res.status(200).send({ message: "Task updated successfully", task });

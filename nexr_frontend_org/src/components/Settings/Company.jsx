@@ -11,6 +11,7 @@ import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined';
 import HouseRoundedIcon from '@mui/icons-material/HouseRounded';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
+import PolicyIcon from '@mui/icons-material/Policy';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
@@ -71,6 +72,33 @@ export default function CompanyTab() {
     HideLabelForEmp: 0
   })
 
+  // Policy Settings State
+  const [policySettings, setPolicySettings] = useState({
+    attendance: {
+      monthlyPermissionLimit: 2,
+      permissionHourLimit: 120,
+      lateLoginPenaltyThreshold: 240,
+      permissionGrantDuration: 2,
+      warningLimit: 3,
+      overtimeLimit: 12
+    },
+    leave: {
+      teamLeaveLimit: 2,
+      teamWfhLimit: 2,
+      autoRejectTime: '23:59',
+      annualLeaveDefault: 14
+    },
+    payroll: {
+      generationDay: 25,
+      workingHoursPerDay: 8
+    },
+    notifications: {
+      reminderFrequency: 'daily',
+      reminderDaysMode: 'workingday',
+      autoProcessingEnabled: true
+    }
+  })
+
   function handleSubmit() {
     const body = RadioOption;
     axios.post(`${url}/api/company-settings`, body, {
@@ -114,6 +142,80 @@ export default function CompanyTab() {
     )
   }
 
+  // Policy-related functions
+  const handlePolicyChange = (section, field, value) => {
+    setPolicySettings(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value
+      }
+    }));
+  };
+
+  const fetchPolicySettings = async () => {
+    try {
+      const response = await axios.get(`${url}/api/company-policy`, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      });
+      
+      if (response.data) {
+        setPolicySettings(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching policy settings:', error);
+      // Don't show error toast as this might be the first time setup
+    }
+  };
+
+  const updatePolicySettings = async () => {
+    try {
+      await axios.put(`${url}/api/company-policy`, policySettings, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      });
+      toast.success('Policy settings updated successfully');
+    } catch (error) {
+      console.error('Error updating policy settings:', error);
+      toast.error(error?.response?.data?.error || 'Failed to update policy settings');
+    }
+  };
+
+  const applyPolicyTemplate = async (templateKey) => {
+    try {
+      await axios.post(`${url}/api/company-policy/template`, {
+        template: templateKey
+      }, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      });
+      await fetchPolicySettings(); // Refresh the settings after applying template
+      toast.success(`${templateKey.charAt(0).toUpperCase() + templateKey.slice(1)} template applied successfully`);
+    } catch (error) {
+      console.error('Error applying template:', error);
+      toast.error(error?.response?.data?.error || 'Failed to apply template');
+    }
+  };
+
+  const resetPolicyToDefaults = async () => {
+    try {
+      await axios.post(`${url}/api/company-policy/reset`, {}, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      });
+      await fetchPolicySettings(); // Refresh the settings after reset
+      toast.success('Policy settings reset to defaults');
+    } catch (error) {
+      console.error('Error resetting policy settings:', error);
+      toast.error(error?.response?.data?.error || 'Failed to reset policy settings');
+    }
+  };
+
   useEffect(() => {
     async function fetchCompanySettings() {
       try {
@@ -131,8 +233,10 @@ export default function CompanyTab() {
         toast.error(error?.response?.data?.error)
       }
     }
-    // checkAllValue();
+    
+    // Fetch both company settings and policy settings
     fetchCompanySettings();
+    fetchPolicySettings();
   }, [])
   
 
@@ -159,6 +263,7 @@ export default function CompanyTab() {
           <Tab label={<LabelWithIcon icon={WatchLaterOutlinedIcon} label={"Overtime and TOIL"} />} className='bbb' {...a11yProps(2)} />
           <Tab label={<LabelWithIcon icon={HouseRoundedIcon} label={"Absence and Entitlement"} />} className='bbb' {...a11yProps(3)} />
           <Tab label={<LabelWithIcon icon={EventNoteOutlinedIcon} label={"Rotas"} />} className='bbb' {...a11yProps(4)} />
+          <Tab label={<LabelWithIcon icon={PolicyIcon} label={"Policy Settings"} />} className='bbb' {...a11yProps(5)} />
         </Tabs>
         <TabPanel value={value} index={0} className={"zzz"}>
           <div className="container">
@@ -381,6 +486,293 @@ export default function CompanyTab() {
                       <button className='button' style={{ fontSize: "13px", width: "100%" }}>
                         Select Eligible Employees
                       </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabPanel>
+        <TabPanel value={value} index={5} className={"zzz"}>
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-12">
+                <div className="box-content">
+                  <h5 className='my-3'>COMPANY POLICY SETTINGS</h5>
+                  <div className="alert alert-info">
+                    Configure company-wide policies for attendance, leave, payroll, and notifications. These settings will be applied across all HR operations.
+                  </div>
+                  
+                  {/* Attendance Policy Section */}
+                  <div className="row my-4">
+                    <div className="col-lg-12">
+                      <h6 className="mb-3 text-primary">📅 Attendance Policy</h6>
+                      <div className="row">
+                        <div className="col-lg-6">
+                          <label className="form-label">Monthly Permission Limit</label>
+                          <input 
+                            type="number" 
+                            className="form-control mb-2" 
+                            value={policySettings?.attendance?.monthlyPermissionLimit}
+                            onChange={(e) => handlePolicyChange('attendance', 'monthlyPermissionLimit', parseInt(e.target.value) || 0)}
+                            min="0"
+                          />
+                          <small className="text-muted">Maximum permissions per employee per month</small>
+                        </div>
+                        <div className="col-lg-6">
+                          <label className="form-label">Permission Duration Limit (minutes)</label>
+                          <input 
+                            type="number" 
+                            className="form-control mb-2" 
+                            value={policySettings?.attendance?.permissionHourLimit}
+                            onChange={(e) => handlePolicyChange('attendance', 'permissionHourLimit', parseInt(e.target.value) || 0)}
+                            min="0"
+                          />
+                          <small className="text-muted">Maximum duration for a single permission</small>
+                        </div>
+                      </div>
+                      <div className="row mt-3">
+                        <div className="col-lg-6">
+                          <label className="form-label">Late Login Penalty Threshold (minutes)</label>
+                          <input 
+                            type="number" 
+                            className="form-control mb-2" 
+                            value={policySettings?.attendance?.lateLoginPenaltyThreshold}
+                            onChange={(e) => handlePolicyChange('attendance', 'lateLoginPenaltyThreshold', parseInt(e.target.value) || 0)}
+                            min="0"
+                          />
+                          <small className="text-muted">Minutes after which late login results in penalty</small>
+                        </div>
+                        <div className="col-lg-6">
+                          <label className="form-label">Warning Limit</label>
+                          <input 
+                            type="number" 
+                            className="form-control mb-2" 
+                            value={policySettings?.attendance?.warningLimit}
+                            onChange={(e) => handlePolicyChange('attendance', 'warningLimit', parseInt(e.target.value) || 0)}
+                            min="0"
+                          />
+                          <small className="text-muted">Maximum warnings before action is taken</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Leave Policy Section */}
+                  <div className="row my-4">
+                    <div className="col-lg-12">
+                      <h6 className="mb-3 text-success">🏖️ Leave Policy</h6>
+                      <div className="row">
+                        <div className="col-lg-6">
+                          <label className="form-label">Team Leave Limit</label>
+                          <input 
+                            type="number" 
+                            className="form-control mb-2" 
+                            value={policySettings?.leave?.teamLeaveLimit}
+                            onChange={(e) => handlePolicyChange('leave', 'teamLeaveLimit', parseInt(e.target.value) || 0)}
+                            min="0"
+                          />
+                          <small className="text-muted">Maximum team members on leave simultaneously</small>
+                        </div>
+                        <div className="col-lg-6">
+                          <label className="form-label">Team Work From Home Limit</label>
+                          <input 
+                            type="number" 
+                            className="form-control mb-2" 
+                            value={policySettings?.leave?.teamWfhLimit}
+                            onChange={(e) => handlePolicyChange('leave', 'teamWfhLimit', parseInt(e.target.value) || 0)}
+                            min="0"
+                          />
+                          <small className="text-muted">Maximum team members working from home simultaneously</small>
+                        </div>
+                      </div>
+                      <div className="row mt-3">
+                        <div className="col-lg-6">
+                          <label className="form-label">Auto-reject Time</label>
+                          <input 
+                            type="time" 
+                            className="form-control mb-2" 
+                            value={policySettings?.leave?.autoRejectTime}
+                            onChange={(e) => handlePolicyChange('leave', 'autoRejectTime', e.target.value)}
+                          />
+                          <small className="text-muted">Time after which pending requests are auto-rejected</small>
+                        </div>
+                        <div className="col-lg-6">
+                          <label className="form-label">Annual Leave Default (days)</label>
+                          <input 
+                            type="number" 
+                            className="form-control mb-2" 
+                            value={policySettings?.leave?.annualLeaveDefault}
+                            onChange={(e) => handlePolicyChange('leave', 'annualLeaveDefault', parseInt(e.target.value) || 0)}
+                            min="0"
+                          />
+                          <small className="text-muted">Default annual leave allocation for new employees</small>
+                        </div>
+                      </div>
+
+                      <div className="row mt-3">
+                        <div className="col-lg-12">
+                          <label className="form-label">If a leave starting today remains pending</label>
+                          <select
+                            className="form-control mb-2"
+                            value={policySettings?.leave?.currentDayPendingApplication || ''}
+                            onChange={(e) => handlePolicyChange('leave', 'currentDayPendingApplication', e.target.value)}
+                          >
+                            <option value="reject">Auto-reject at end of day</option>
+                            <option value="no_action">Do nothing (keep pending)</option>
+                            <option value="auto_approve">Auto-approve at end of day</option>
+                          </select>
+                          <small className="text-muted">Choose how to handle same-day pending leave applications at the end of the day</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payroll Policy Section */}
+                  <div className="row my-4">
+                    <div className="col-lg-12">
+                      <h6 className="mb-3 text-warning">💰 Payroll Policy</h6>
+                      <div className="row">
+                        <div className="col-lg-6">
+                          <label className="form-label">Payroll Generation Day</label>
+                          <input 
+                            type="number" 
+                            className="form-control mb-2" 
+                            value={policySettings?.payroll?.generationDay}
+                            onChange={(e) => handlePolicyChange('payroll', 'generationDay', parseInt(e.target.value) || 0)}
+                            min="1"
+                            max="31"
+                          />
+                          <small className="text-muted">Day of the month when payroll is generated</small>
+                        </div>
+                        <div className="col-lg-6">
+                          <label className="form-label">Working Hours Per Day</label>
+                          <input 
+                            type="number" 
+                            className="form-control mb-2" 
+                            value={policySettings?.payroll?.workingHoursPerDay}
+                            onChange={(e) => handlePolicyChange('payroll', 'workingHoursPerDay', parseInt(e.target.value) || 0)}
+                            min="1"
+                            max="24"
+                          />
+                          <small className="text-muted">Standard working hours per day</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Notification Policy Section */}
+                  <div className="row my-4">
+                    <div className="col-lg-12">
+                      <h6 className="mb-3 text-info">🔔 Notification Policy</h6>
+                      <div className="row">
+                        <div className="col-lg-6">
+                          <label className="form-label">Reminder Frequency</label>
+                          <select 
+                            className="form-control mb-2" 
+                            value={policySettings?.notifications?.reminderFrequency}
+                            onChange={(e) => handlePolicyChange('notifications', 'reminderFrequency', e.target.value)}
+                          >
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                          </select>
+                      <small className="text-muted">How often reminder notifications are sent</small>
+                        </div>
+                        <div className="col-lg-6">
+                          <label className="form-label">Reminder Days</label>
+                          <select 
+                            className="form-control mb-2" 
+                            value={policySettings?.notifications?.reminderDaysMode}
+                            onChange={(e) => handlePolicyChange('notifications', 'reminderDaysMode', e.target.value)}
+                          >
+                            <option value="workingday">Working days only (Mon-Fri)</option>
+                            <option value="everyday">Every day (Sun-Sat)</option>
+                          </select>
+                          <small className="text-muted">Choose whether reminders are sent on all days or only weekdays</small>
+                        </div>
+                        <div className="col-lg-6">
+                          <label className="form-label">Auto Processing</label>
+                          <select 
+                            className="form-control mb-2" 
+                            value={policySettings?.notifications?.autoProcessingEnabled}
+                            onChange={(e) => handlePolicyChange('notifications', 'autoProcessingEnabled', e.target.value === 'true')}
+                          >
+                            <option value={true}>Enabled</option>
+                            <option value={false}>Disabled</option>
+                          </select>
+                          <small className="text-muted">Enable automatic processing of requests</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Templates Section */}
+                  <div className="row my-4">
+                    <div className="col-lg-12">
+                      <h6 className="mb-3 text-secondary">🚀 Quick Templates</h6>
+                      <div className="row">
+                        <div className="col-lg-4">
+                          <div className="card border-success">
+                            <div className="card-body">
+                              <h6 className="card-title text-success">Startup Template</h6>
+                              <p className="card-text small">Flexible policies for growing startups</p>
+                              <button 
+                                className="btn btn-outline-success btn-sm" 
+                                onClick={() => applyPolicyTemplate('startup')}
+                              >
+                                Apply Template
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-lg-4">
+                          <div className="card border-primary">
+                            <div className="card-body">
+                              <h6 className="card-title text-primary">Corporate Template</h6>
+                              <p className="card-text small">Standard policies for established companies</p>
+                              <button 
+                                className="btn btn-outline-primary btn-sm" 
+                                onClick={() => applyPolicyTemplate('corporate')}
+                              >
+                                Apply Template
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="col-lg-4">
+                          <div className="card border-warning">
+                            <div className="card-body">
+                              <h6 className="card-title text-warning">Enterprise Template</h6>
+                              <p className="card-text small">Strict policies for large enterprises</p>
+                              <button 
+                                className="btn btn-outline-warning btn-sm" 
+                                onClick={() => applyPolicyTemplate('enterprise')}
+                              >
+                                Apply Template
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="row mt-3">
+                        <div className="col-lg-6">
+                          <button 
+                            className="btn btn-outline-secondary" 
+                            onClick={resetPolicyToDefaults}
+                          >
+                            Reset to Default Settings
+                          </button>
+                        </div>
+                        <div className="col-lg-6 text-end">
+                          <button 
+                            className="btn btn-success" 
+                            onClick={updatePolicySettings}
+                          >
+                            Save Policy Settings
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
