@@ -1,6 +1,6 @@
 const schedule = require("node-schedule");
 const axios = require("axios");
-const { TimePattern } = require("../models/TimePatternModel");
+const TimePattern = require("../models/TimePatternModel");
 
 module.exports = function attachSettingsHooks(schema) {
   // Keep single-instance jobs here and per-company jobs in a map
@@ -129,7 +129,7 @@ module.exports = function attachSettingsHooks(schema) {
     rule.second = second;
 
     if (fallbackMode === 'everyday') {
-      rule.dayOfWeek = [0,1,2,3,4,5,6];
+      rule.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
       return rule;
     }
 
@@ -150,11 +150,11 @@ module.exports = function attachSettingsHooks(schema) {
         rule.dayOfWeek = weeklyDays;
       } else {
         // fallback to Mon–Fri
-        rule.dayOfWeek = [1,2,3,4,5];
+        rule.dayOfWeek = [1, 2, 3, 4, 5];
       }
     } catch (e) {
       console.warn('Failed to load TimePattern for company', companyId, e?.message);
-      rule.dayOfWeek = [1,2,3,4,5];
+      rule.dayOfWeek = [1, 2, 3, 4, 5];
     }
     return rule;
   }

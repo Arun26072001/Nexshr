@@ -25,7 +25,7 @@ const AdminUsers = ({ users, isLoading }) => {
             <p className="titleText text-start px-3">All Users</p>
             <div className="col-lg-12">
                 <div className="d-flex justify-content-end align-items-center px-3">
-                    <Input size="lg" appearance="default" style={{ width: "250px" }} placeholder="Search By Name" onChange={setEmpName} />
+                    <Input size="lg" appearance="default" style={{ width: "100%" }} placeholder="Search By Name" onChange={setEmpName} />
                 </div>
             </div>
 

@@ -5,7 +5,6 @@ import { DateRangePicker, Input } from 'rsuite';
 import "../payslip/payslip.css";
 import CircleIcon from '@mui/icons-material/Circle';
 import dayjs from "dayjs";
-import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
@@ -135,11 +134,14 @@ export default function LeaveCalender() {
             {
                 <div className="leaveContainer d-block">
                     {/* Search Input */}
-                    <div className='px-3 my-3'>
-                        <div className="d-flex align-items-center justify-content-between">
-                            <Input value={empName} size="lg" style={{ width: "300px" }} placeholder="Search Employee" onChange={(e) => setEmpName(e)} />
+                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div className="col-lg-5 col-md-5 col-12 mb-1">
+                            <Input value={empName} size="lg" style={{ width: "100%" }} placeholder="Search Employee" onChange={(e) => setEmpName(e)} />
+                        </div>
+                        <div className="col-lg-5 col-md-5 col-12 mb-1 justify-content-end">
                             <DateRangePicker
                                 size="lg"
+                                style={{ width: "100%" }}
                                 showOneCalendar
                                 placement="bottomEnd"
                                 value={dateRangeValue}
@@ -152,18 +154,22 @@ export default function LeaveCalender() {
                     {
                         isLoading ? <Loading height='60vh' /> :
                             <>
-                                <p className="mb-2 payslipTitle justify-content-center gap-2">{statuses.map((item) => <><CircleIcon sx={{ color: item.color }} /> {item.status}</>)}</p>
-                                <Calendar
-                                    localizer={localizer}
-                                    events={formattedLeaveDays}
-                                    startAccessor="start"
-                                    endAccessor="end"
-                                    eventPropGetter={eventPropGetter}
-                                    components={{
-                                        event: CustomEventComponent
-                                    }}
-                                    style={{ height: 500 }}
-                                />
+                                <p className="mb-2 payslipTitle justify-content-center gap-2 flex-wrap">{statuses.map((item) => <><CircleIcon sx={{ color: item.color }} /> {item.status}</>)}</p>
+                                <div style={{ width: "100%", overflowX: "auto" }}>
+                                    <Calendar
+                                        longPressThreshold={100}
+                                        localizer={localizer}
+                                        events={formattedLeaveDays}
+                                        startAccessor="start"
+                                        endAccessor="end"
+                                        eventPropGetter={eventPropGetter}
+                                        components={{
+                                            event: CustomEventComponent
+                                        }}
+                                        style={{ minWidth: 600, height: 500 }} // allow horizontal scroll on small screens
+                                    />
+                                </div>
+
                             </>
                     }
                 </div>

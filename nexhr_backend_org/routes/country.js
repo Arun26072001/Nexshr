@@ -9,11 +9,11 @@ const configPath = path.join(__dirname, '../countriesData/countryCode.json');
 
 // country validation 
 const CountryValidation = Joi.object().keys({
-  name: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
-  icon: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
-  abbr: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
-  code: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
-  states: Joi.array().items(Joi.string()).optional()
+    name: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
+    icon: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
+    abbr: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
+    code: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
+    states: Joi.array().items(Joi.string()).optional()
 });
 
 // Read JSON file

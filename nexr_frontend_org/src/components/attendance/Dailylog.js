@@ -92,7 +92,6 @@ const Dailylog = () => {
                             <FileDownloadRoundedIcon /> Export
                         </b>
                     </Dropdown.Item>
-
                 </Dropdown.Menu>
             </Popover>
         );
@@ -100,12 +99,12 @@ const Dailylog = () => {
 
     return (
         <div className='dashboard-parent pt-4'>
-            <div className='d-flex justify-content-between align-items-center px-3'>
-                <div>
+            <div className='d-flex justify-content-between align-items-center px-3 flex-wrap'>
+                <div className='col-lg-6 col-md-6 col-12'>
                     <h5 className='text-daily'>Daily Log</h5>
                 </div>
 
-                <div className='d-flex gap-3'>
+                <div className='d-flex gap-1 col-lg-6 col-md-6 col-12 flex-wrap '>
                     <DateRangePicker
                         size="lg"
                         showOneCalendar

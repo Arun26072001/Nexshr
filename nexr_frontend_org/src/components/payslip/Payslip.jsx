@@ -8,10 +8,10 @@ import { EssentialValues } from "../../App";
 import { toast } from "react-toastify";
 
 const Payslip = () => {
-    const [daterangeValue, setDaterangeValue] = useState("");
     const { data } = useContext(EssentialValues);
     const [payslips, setPayslips] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+    const [daterangeValue, setDaterangeValue] = useState("");
 
     useEffect(() => {
         async function fetchPayslips() {
@@ -31,11 +31,11 @@ const Payslip = () => {
 
     return (
         <div>
-            <div className="d-flex justify-content-between align-items-center px-2 my-2">
-                <p className="payslipTitle">
+            <div className="d-flex justify-content-between align-items-center px-2 my-2 flex-wrap">
+                <p className="payslipTitle col-lg-6 col-12 col-md-6">
                     Payslip
                 </p>
-                <div>
+                <div className="col-lg-6 col-12 col-md-6 d-flex flex-wrap justify-content-end">
                     <DateRangePicker size="lg" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
                 </div>
             </div>

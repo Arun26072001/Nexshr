@@ -70,8 +70,8 @@ const Announce = () => {
 
     return (
         <div className='dashboard-parent py-4'>
-            <div className="d-flex justify-content-between align-items-center px-3">
-                <h5 className='text-daily'>Announcement</h5>
+            <div className="d-flex justify-content-between align-items-center px-3 flex-wrap">
+                <h5 className='text-daily col-lg-6 col-12 col-md-6'>Announcement</h5>
                 <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
             </div>
             <div className='profiles mt-3'>

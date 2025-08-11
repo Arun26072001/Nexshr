@@ -313,19 +313,24 @@ const ManageTeam = () => {
     return (
         isLoading ? <Loading height="80vh" /> :
             <div className="my-2">
-                <div className="d-flex gap-2">
-                    <InputGroup inside style={{ width: "300px" }} size="lg">
-                        <Input placeholder="Team Name" className="m-0" value={searchTeam} onChange={filterTeam} />
-                        <InputGroup.Button className="m-auto">
-                            <SearchRoundedIcon />
-                        </InputGroup.Button>
-                    </InputGroup>
-                    {
-                        ["admin", "hr"].includes(whoIs) &&
-                        <button className="button" onClick={toggleAddTeam}>
-                            {addTeam ? "Cancel" : "Add a new team"}
-                        </button>
-                    }
+                <div className="d-flex justify-content-between flex-wrap">
+                    <div className="col-lg-6 col-md-6 col-12 mb-2">
+                        <h5 className="text-daily">Country</h5>
+                    </div>
+                    <div className="d-flex flex-wrap col-lg-6 col-md-6 col-12 gap-1">
+                        <InputGroup inside style={{ width: "70%" }} size="lg">
+                            <Input placeholder="Team Name" className="m-0" value={searchTeam} onChange={filterTeam} />
+                            <InputGroup.Button className="m-auto">
+                                <SearchRoundedIcon />
+                            </InputGroup.Button>
+                        </InputGroup>
+                        {
+                            ["admin", "hr"].includes(whoIs) &&
+                            <button className="button" onClick={toggleAddTeam}>
+                                {addTeam ? "Cancel" : "Add a new team"}
+                            </button>
+                        }
+                    </div>
                 </div>
 
                 {addTeam && (

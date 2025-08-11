@@ -42,16 +42,16 @@ export default function WorkFromHome() {
     }
   }
 
-    async function checkPermanentWFH() {
-      const isPermanent = await checkEmpIsPermanentWFH(_id);
-      if(isPermanent){
-        setIsPermanentWFH(isPermanent);
-      }
+  async function checkPermanentWFH() {
+    const isPermanent = await checkEmpIsPermanentWFH(_id);
+    if (isPermanent) {
+      setIsPermanentWFH(isPermanent);
     }
-  
-    useEffect(() => {
-      checkPermanentWFH()
-    }, [])
+  }
+
+  useEffect(() => {
+    checkPermanentWFH()
+  }, [])
 
   useEffect(() => {
     fetchWfhReuests();
@@ -79,19 +79,21 @@ export default function WorkFromHome() {
   return (
     <div >
       {/* top date input and leave label */}
-      <div className="leaveDateParent row px-2">
-        <p className="payslipTitle col-6">
+      <div className="leaveDateParent px-2">
+        <p className="payslipTitle ">
           WFH Requests
         </p>
-        <div className="col-6 d-flex justify-content-end">
-          <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={dateRangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
-          <button className="button mx-1" disabled={isPermanentWFH} title={isPermanentWFH ? "You have the permanent WFH option, so there's no need to apply for WFH." : "You can submit a WFH request."} onClick={() => navigate(`/${whoIs}/wfh-request`)}>
-            Apply WFH
-          </button>
-        </div>
       </div>
 
       <div className="leaveContainer d-block">
+        <div className='d-flex justify-content-end my-2'>
+          <div className="col-lg-8 col-12 col-md-8 d-flex flex-wrap justify-content-end">
+              <DateRangePicker size="lg" className="ml-1" style={{width: "70%"}} showOneCalendar placement="bottomEnd" value={dateRangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
+              <button className="button mx-1" disabled={isPermanentWFH} title={isPermanentWFH ? "You have the permanent WFH option, so there's no need to apply for WFH." : "You can submit a WFH request."} onClick={() => navigate(`/${whoIs}/wfh-request`)}>
+                Apply WFH
+              </button>
+            </div>
+        </div>
         <div className="w-100 d-flex justify-content-center my-2">
           <div className="leaveBoard">
             <div className="leaveData col-12 col-lg-3">

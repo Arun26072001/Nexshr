@@ -78,7 +78,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
 
 
     return (
-        <div>
+        <div className='col-lg-6 col-12 col-md-6 d-flex justify-content-end'>
             <button onClick={handleModel} className='button'>
                 <AddRoundedIcon /> Announcement
             </button>

@@ -123,8 +123,3 @@ thead {
 .rs-calendar-panel .rs-calendar-table-cell-day {
   margin-top: 0px;
 }
-
-.rbc-toolbar > .rbc-btn-group {
-  display: flex !important;
-  flex-wrap: wrap;
-}

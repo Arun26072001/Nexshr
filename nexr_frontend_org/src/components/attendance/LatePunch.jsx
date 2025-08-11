@@ -103,7 +103,7 @@ export default function LatePunch() {
                 const fullName = `${emp.FirstName}${emp.LastName}`.toLowerCase();
                 return fullName.includes(empName.toLowerCase())
             }
-        );
+            );
             setLatePunches(filterRequests);
         }
     }, [empName]);
@@ -121,11 +121,14 @@ export default function LatePunch() {
                 {/* Display leave data or no data found */}
                 <div>
                     <div className="leaveContainer d-block">
-                        <div className='px-3 my-3'>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <Input value={empName} size="lg" style={{ width: "300px" }} placeholder="Search Employee" onChange={setEmpName} />
+                        <div className="d-flex align-items-center justify-content-between flex-wrap">
+                            <div className="col-lg-5 col-12 col-md-5 mb-1">
+                                <Input value={empName} size="lg" style={{ width: "100%" }} placeholder="Search Employee" onChange={setEmpName} />
+                            </div>
+                            <div className="col-lg-5 col-12 col-md-5 mb-1 justify-content-end">
                                 <DateRangePicker
                                     size="lg"
+                                    style={{ width: "100%" }}
                                     showOneCalendar
                                     placement="bottomEnd"
                                     value={dateRangeValue}

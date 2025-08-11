@@ -170,9 +170,9 @@ export default function Department() {
             isWorkingApi={isChangingDepartment}
         /> :
             <div className='dashboard-parent pt-4'>
-                <div className="d-flex justify-content-between px-2 mb-2">
-                    <h5 className='text-daily'>Department</h5>
-                    <button className='button m-0' onClick={modifyDepartments}>+ Add Department</button>
+                <div className="d-flex justify-content-between px-2 mb-2 flex-wrap">
+                    <h5 className='text-daily col-lg-6 col-md-6 col-12'>Department</h5>
+                    <button className='button m-0 col-lg-6 col-md-6 col-12 justify-content-end' onClick={modifyDepartments}>+ Add Department</button>
                 </div>
                 {
                     isLoading ? <Skeleton

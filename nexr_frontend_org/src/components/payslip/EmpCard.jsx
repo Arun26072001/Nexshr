@@ -32,28 +32,30 @@ const EmpCard = ({ team, deleteTeam, editTeam, whoIs }) => {
                 />
             )}
 
-            <div className="col-lg-5 empCard">
-                <div className="nameHolder">
-                    <b>{team?.teamName ? team.teamName[0].toUpperCase() : "?"}</b>
-                </div>
-                <div>
-                    <div style={{ fontWeight: 600 }}>
-                        {team?.teamName
-                            ? team.teamName[0].toUpperCase() + team.teamName.slice(1)
-                            : "Unnamed Team"}
+            <div className="col-md-5 col-12 col-lg-5">
+                <div className="empCard">
+                    <div className="nameHolder">
+                        <b>{team?.teamName ? team.teamName[0].toUpperCase() : "?"}</b>
                     </div>
-                    <div>{team?.employees?.length || 0} member(s)</div>
-                </div>
-                <div>
-                    <div onClick={() => editTeam(team)}>
-                        <EditOutlinedIcon color="primary" sx={{ cursor: "pointer" }} />
-                    </div>
-                    {
-                        ["admin", "hr"].includes(whoIs) &&
-                        <div onClick={() => handleDelete(team._id)}>
-                            <DeleteOutlineOutlinedIcon color="primary" sx={{ cursor: "pointer" }} />
+                    <div>
+                        <div style={{ fontWeight: 600 }}>
+                            {team?.teamName
+                                ? team.teamName[0].toUpperCase() + team.teamName.slice(1)
+                                : "Unnamed Team"}
                         </div>
-                    }
+                        <div>{team?.employees?.length || 0} member(s)</div>
+                    </div>
+                    <div>
+                        <div onClick={() => editTeam(team)}>
+                            <EditOutlinedIcon color="primary" sx={{ cursor: "pointer" }} />
+                        </div>
+                        {
+                            ["admin", "hr"].includes(whoIs) &&
+                            <div onClick={() => handleDelete(team._id)}>
+                                <DeleteOutlineOutlinedIcon color="primary" sx={{ cursor: "pointer" }} />
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </>
