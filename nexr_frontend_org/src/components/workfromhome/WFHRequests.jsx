@@ -144,16 +144,16 @@ export default function WFHRequests() {
             fetchAllWfhRequests()
         } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
             fetchTeamWfhRequests();
-        }   
+        }
     }, [dateRangeValue, empName])
     return (
         <div >
             {/* top date input and requests label */}
-            <div className="leaveDateParent row px-2">
-                <p className="payslipTitle col-6">
+            <div className="d-flex justify-content-between align-items-center flex-wrap">
+                <p className="payslipTitle col-lg-6 col-md-6 col-12">
                     WFH Requests
                 </p>
-                <div className="col-6 d-flex justify-content-end">
+                <div className="col-lg-6 col-md-6 col-12 d-flex justify-content-end">
                     <button className="button mx-1" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
                         Apply WFH
                     </button>
@@ -162,15 +162,19 @@ export default function WFHRequests() {
 
             <div className="leaveContainer d-block">
                 <div className='px-3 my-3'>
-                    <div className="d-flex align-items-center justify-content-between my-2">
-                        <Input value={empName} size="lg" style={{ width: "300px" }} placeholder="Search Employee" onChange={(e) => setEmpName(e)} />
-                        <DateRangePicker size="lg"
-                            className="ml-1"
-                            showOneCalendar
-                            placement="bottomEnd"
-                            value={dateRangeValue}
-                            placeholder="Filter Range of Date"
-                            onChange={setDaterangeValue} />
+                    <div className="d-flex align-items-center justify-content-between flex-wrap">
+                        <div className='col-lg-6 col-md-6 col-12 mb-1'>
+                            <Input value={empName} size="lg" placeholder="Search Employee" onChange={(e) => setEmpName(e)} />
+                        </div>
+                        <div className='col-lg-6 col-md-6 col-12 d-flex justify-content-end mb-1'>
+                            <DateRangePicker size="lg"
+                                className="ml-1"
+                                showOneCalendar
+                                placement="bottomEnd"
+                                value={dateRangeValue}
+                                placeholder="Filter Range of Date"
+                                onChange={setDaterangeValue} />
+                        </div>
                     </div>
                 </div>
                 <div className="w-100 d-flex justify-content-center my-2">

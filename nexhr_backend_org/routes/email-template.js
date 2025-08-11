@@ -1,7 +1,7 @@
 const express = require("express");
 const { verifyAdminHR } = require("../auth/authMiddleware");
 const { EmailtempValidation, EmailTemplate } = require("../models/EmailTemplateModel");
-const { errorCollector, checkValidObjId } = require("../Reuseable_functions/reusableFunction");
+const { errorCollector, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 // add email template

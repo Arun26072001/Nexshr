@@ -333,8 +333,8 @@ const EmployeeForm = ({
     return (
         <form onSubmit={handleSubmit}>
             <div className="empForm">
-                <div className="catogaries-container">
-                    <div className="catogaries">
+                <div className="catogaries-container col-lg-4 col-12 col-md-4">
+                    <div className="catogaries mx-1" >
                         {["personal", "contact", "employment", "job", "financial", "payslip"].map(section => {
                             // console.log(details === section, details, section)
                             return <div
@@ -348,7 +348,7 @@ const EmployeeForm = ({
                     </div>
                 </div>
 
-                <div className="detailsParent">
+                <div className="col-lg-8 col-12 col-md-8 gap-1">
                     {/* Personal Details Section */}
                     <div className="personalDetails" ref={personalRef}>
                         <div className="row my-3 d-flex justify-content-center">
@@ -776,23 +776,6 @@ const EmployeeForm = ({
                                     <div className="text-center text-danger">{errors?.warnings}</div>
                                 )}
                             </div>
-                            {/* <div className="col-lg-4">
-                                <div className="inputLabel important">Monthly Permissions</div>
-                                <input
-                                    readOnly={isView}
-                                    type="number"
-                                    min={0}
-                                    max={10}
-                                    value={employeeObj?.monthlyPermissions || ""}
-                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "monthlyPermissions") : () => { }}
-                                    name="monthlyPermissions"
-                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
-                                    className={`inputField ${errors?.monthlyPermissions ? "error" : ""}`}
-                                />
-                                {errors?.monthlyPermissions && (
-                                    <div className="text-center text-danger">{errors?.monthlyPermissions}</div>
-                                )}
-                            </div> */}
                         </div>
 
                         <div className="row d-flex justify-content-center">
@@ -985,7 +968,7 @@ const EmployeeForm = ({
                                     disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "taxDeduction") : () => { }}
                                     value={employeeObj?.taxDeduction || ""}
-                                />
+                                    />
                             </div>
                         </div>
 
@@ -1000,7 +983,7 @@ const EmployeeForm = ({
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "IFSCcode") : () => { }}
                                     value={employeeObj?.IFSCcode || ""}
                                     disabled={["admin", "hr"].includes(whoIs) ? false : true}
-                                />
+                                    />
                                 {errors?.IFSCcode && <div className="text-center text-danger">{errors?.IFSCcode}</div>}
                             </div>
                         </div>
@@ -1024,7 +1007,7 @@ const EmployeeForm = ({
                                             onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, field.fieldName) : () => { }}
                                             value={employeeObj?.payslipFields?.[field.fieldName] || ""}
                                             disabled={["admin", "hr"].includes(whoIs) ? false : true}
-                                        />
+                                            />
                                         {errors[field.fieldName] && (
                                             <div className="text-center text-danger">{errors[field.fieldName]}</div>
                                         )}
@@ -1049,7 +1032,7 @@ const EmployeeForm = ({
                                 ["emp", "sys-admin"].includes(whoIs)
                                     ? navigate(`/${whoIs}`)
                                     : navigate(`/${whoIs}/employee`)
-                            }
+                                }
                         >
                             Cancel
                         </button>
@@ -1062,7 +1045,7 @@ const EmployeeForm = ({
                             style={{
                                 cursor: isWorkingApi ? "progress" : "pointer"
                             }}
-                        >
+                            >
                             {isWorkingApi ? <Loading size={20} color="white" /> : employeeObj?._id ? "Update" : "Save"}
                         </button>
                     </div>
@@ -1073,3 +1056,20 @@ const EmployeeForm = ({
 };
 
 export default EmployeeForm;
+// {/* <div className="col-lg-4">
+//     <div className="inputLabel important">Monthly Permissions</div>
+//     <input
+//         readOnly={isView}
+//         type="number"
+//         min={0}
+//         max={10}
+//         value={employeeObj?.monthlyPermissions || ""}
+//         onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "monthlyPermissions") : () => { }}
+//         name="monthlyPermissions"
+//         disabled={["admin", "hr"].includes(whoIs) ? false : true}
+//         className={`inputField ${errors?.monthlyPermissions ? "error" : ""}`}
+//     />
+//     {errors?.monthlyPermissions && (
+//         <div className="text-center text-danger">{errors?.monthlyPermissions}</div>
+//     )}
+// </div> */}

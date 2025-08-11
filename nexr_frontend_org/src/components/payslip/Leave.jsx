@@ -51,7 +51,7 @@ const Leave = () => {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
-        }finally{
+        } finally {
             setIsDeleting("")
         }
     }
@@ -87,18 +87,24 @@ const Leave = () => {
         <div >
             {/* top date input and leave label */}
             <div className="leaveDateParent row px-2">
-                <p className="payslipTitle col-6">
+                <p className="payslipTitle col-lg-6 col-12 col-md-6">
                     Leave
                 </p>
-                <div className="col-6 d-flex justify-content-end">
-                    <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
-                    <button className="button mx-1" onClick={() => navigate(`/${whoIs}/leave-request`)}>
-                        Add Leave
-                    </button>
-                </div>
             </div>
 
             <div className="leaveContainer d-block">
+                    <div className="d-flex flex-wrap my-3">
+                        <div className="col-lg-6 col-12 col-md-12 d-flex flex-wrap mb-1">
+                            <Input value={empName} size="lg" style={{ width: "100%" }} placeholder="Search by Leave type" onChange={(e) => setEmpName(e)} />
+                        </div>
+                        <div className="col-lg-6 col-12 col-md-12 d-flex flex-wrap mb-1">
+                            <DateRangePicker size="lg" style={{width: "100%"}} className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
+                            <button className="button mx-1" onClick={() => navigate(`/${whoIs}/leave-request`)}>
+                                Add Leave
+                            </button>
+                        </div>
+                    </div>
+
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
                         <div className="leaveData col-12 col-lg-3">
@@ -133,13 +139,7 @@ const Leave = () => {
                         </div>
                     </div>
                 </div>
-                <div className='px-3 my-3'>
-                    <div className="row">
-                        <div className="col-lg-12 col-12 d-flex justify-content-end">
-                            <Input value={empName} size="lg" style={{ width: "250px" }} placeholder="Search by Leave type" onChange={(e) => setEmpName(e)} />
-                        </div>
-                    </div>
-                </div>
+
                 {
                     isLoading ?
                         <Skeleton

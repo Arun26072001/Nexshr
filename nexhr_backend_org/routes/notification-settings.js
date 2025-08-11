@@ -13,7 +13,6 @@ router.get('/', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 
     let settings = await NotificationSettings.findOne({ companyId });
-    console.log("settings", settings)
     // If no settings found, create default settings
     if (!settings) {
       settings = new NotificationSettings({ companyId });

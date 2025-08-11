@@ -18,12 +18,12 @@ import { EssentialValues } from '../../App';
 import { useNavigate } from 'react-router-dom';
 
 // Icons
-import PolicyIcon from '@mui/icons-material/Policy';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import PaymentIcon from '@mui/icons-material/Payment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { DatePicker, InputNumber, TimePicker } from 'rsuite';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -70,9 +70,12 @@ function LabelWithIcon({ icon, label }) {
 
 export default function CompanyPolicy() {
   const navigate = useNavigate();
+  const theme = useTheme();
+  console.log("theme", theme);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [value, setValue] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  // const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const { data } = useContext(EssentialValues);
   const url = process.env.REACT_APP_API_URL;
 
@@ -87,7 +90,6 @@ export default function CompanyPolicy() {
           Authorization: data.token || ""
         }
       });
-      console.log("settings", response.data);
 
       if (response.data) {
         setPolicySettings(response.data.policy);
@@ -223,13 +225,19 @@ export default function CompanyPolicy() {
         sx={{ flexGrow: 1, bgcolor: 'background.paper', display: 'flex', height: 'fit-content' }}
       >
         <Tabs
-          orientation="vertical"
+          orientation={isMobile ? "horizontal" : "vertical"}
           variant="scrollable"
           value={value}
           onChange={handleChange}
           aria-label="Company policy tabs"
-          sx={{ borderRight: 1, borderColor: 'divider', minWidth: 250 }}
+          allowScrollButtonsMobile
+          sx={{
+            borderRight: isMobile ? "none" : 1,
+            borderColor: "divider",
+            minWidth: isMobile ? "100%" : "200px",
+          }}
         >
+
           <Tab
             label={<LabelWithIcon icon={AccessTimeIcon} label="Attendance Policy" />}
             className="bbb"
@@ -250,11 +258,6 @@ export default function CompanyPolicy() {
             className="bbb"
             {...a11yProps(3)}
           />
-          {/* <Tab
-            label={<LabelWithIcon icon={PolicyIcon} label="Templates" />}
-            className="bbb"
-            {...a11yProps(4)}
-          /> */}
         </Tabs>
 
         {/* Attendance Policy Tab */}
@@ -526,256 +529,4 @@ export default function CompanyPolicy() {
       </div>
     </>
   );
-
-
-
-  
 }
-
-// {/* Templates Tab */}
-// {/* <TabPanel value={value} index={4} className="zzz">
-//   <div className="container">
-//     <div className="row" style={{ marginBottom: "50px" }}>
-//       <div className="col-lg-12">
-//         <div className="box-content">
-//           <h5 className='my-3'>POLICY TEMPLATES</h5>
-//           <Alert severity="info" sx={{ mb: 2 }}>
-//             Apply pre-configured policy templates or reset to default settings.
-//           </Alert>
-
-//           <div className="row">
-//             {Object.entries(templates).map(([key, template]) => (
-//               <div key={key} className="col-lg-4 mb-3">
-//                 <div className="card">
-//                   <div className="card-body">
-//                     <h6 className="card-title">{template?.name}</h6>
-//                     <p className="card-text">{template?.description}</p>
-//                     <div className="mb-2">
-//                       <Chip
-//                         label={`${template?.settings?.attendance?.monthlyPermissionLimit} Monthly Permissions`}
-//                         size="small"
-//                         sx={{ mr: 1, mb: 1 }}
-//                       />
-//                       <Chip
-//                         label={`${template?.settings?.leave?.teamLeaveLimit} Team Leave Limit`}
-//                         size="small"
-//                         sx={{ mr: 1, mb: 1 }}
-//                       />
-//                       <Chip
-//                         label={`${template?.settings?.leave?.teamWfhLimit} WFH Limit`}
-//                         size="small"
-//                         sx={{ mr: 1, mb: 1 }}
-//                       />
-//                     </div>
-//                     <Button
-//                       variant="outlined"
-//                       size="small"
-//                       onClick={() => applyTemplate(key)}
-//                       disabled={loading}
-//                     >
-//                       Apply Template
-//                     </Button>
-//                   </div>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-
-//           <div className="row mt-4">
-//             <div className="col-lg-12">
-//               <Button
-//                 variant="outlined"
-//                 color="warning"
-//                 onClick={resetToDefaults}
-//                 disabled={loading}
-//               >
-//                 Reset to Default Settings
-//               </Button>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-// </TabPanel> */}
-
-  // Template options
-  // const templates = {
-  //   startup: {
-  //     name: 'Startup Template',
-  //     description: 'Flexible policies for startup companies',
-  //     settings: {
-  //       attendance: {
-  //         monthlyPermissionLimit: 3,
-  //         permissionHourLimit: 180,
-  //         lateLoginPenaltyThreshold: 360,
-  //         permissionGrantDuration: 3,
-  //         warningLimit: 5,
-  //         overtimeLimit: 15
-  //       },
-  //       leave: {
-  //         teamLeaveLimit: 3,
-  //         teamWfhLimit: 3,
-  //         autoRejectTime: '22:00',
-  //         annualLeaveDefault: 20
-  //       },
-  //       payroll: {
-  //         generationDay: 28,
-  //         workingHoursPerDay: 8
-  //       },
-  //       notifications: {
-  //         reminderFrequency: 'daily',
-  //         autoProcessingEnabled: true
-  //       }
-  //     }
-  //   },
-  //   corporate: {
-  //     name: 'Corporate Template',
-  //     description: 'Standard policies for corporate organizations',
-  //     settings: {
-  //       attendance: {
-  //         monthlyPermissionLimit: 2,
-  //         permissionHourLimit: 120,
-  //         lateLoginPenaltyThreshold: 240,
-  //         permissionGrantDuration: 2,
-  //         warningLimit: 3,
-  //         overtimeLimit: 12
-  //       },
-  //       leave: {
-  //         teamLeaveLimit: 2,
-  //         teamWfhLimit: 2,
-  //         autoRejectTime: '23:59',
-  //         annualLeaveDefault: 14
-  //       },
-  //       payroll: {
-  //         generationDay: 25,
-  //         workingHoursPerDay: 8
-  //       },
-  //       notifications: {
-  //         reminderFrequency: 'daily',
-  //         autoProcessingEnabled: true
-  //       }
-  //     }
-  //   },
-  //   enterprise: {
-  //     name: 'Enterprise Template',
-  //     description: 'Strict policies for large enterprises',
-  //     settings: {
-  //       attendance: {
-  //         monthlyPermissionLimit: 1,
-  //         permissionHourLimit: 60,
-  //         lateLoginPenaltyThreshold: 180,
-  //         permissionGrantDuration: 1,
-  //         warningLimit: 2,
-  //         overtimeLimit: 10
-  //       },
-  //       leave: {
-  //         teamLeaveLimit: 1,
-  //         teamWfhLimit: 1,
-  //         autoRejectTime: '18:00',
-  //         annualLeaveDefault: 12
-  //       },
-  //       payroll: {
-  //         generationDay: 30,
-  //         workingHoursPerDay: 9
-  //       },
-  //       notifications: {
-  //         reminderFrequency: 'weekly',
-  //         autoProcessingEnabled: false
-  //       }
-  //     }
-  //   }
-  // };
-  // console.log("settingsObj", policySettings)
-  // Fetch current policy settings
-  
-  // Template options
-  // const templates = {
-  //   startup: {
-  //     name: 'Startup Template',
-  //     description: 'Flexible policies for startup companies',
-  //     settings: {
-  //       attendance: {
-  //         monthlyPermissionLimit: 3,
-  //         permissionHourLimit: 180,
-  //         lateLoginPenaltyThreshold: 360,
-  //         permissionGrantDuration: 3,
-  //         warningLimit: 5,
-  //         overtimeLimit: 15
-  //       },
-  //       leave: {
-  //         teamLeaveLimit: 3,
-  //         teamWfhLimit: 3,
-  //         autoRejectTime: '22:00',
-  //         annualLeaveDefault: 20
-  //       },
-  //       payroll: {
-  //         generationDay: 28,
-  //         workingHoursPerDay: 8
-  //       },
-  //       notifications: {
-  //         reminderFrequency: 'daily',
-  //         autoProcessingEnabled: true
-  //       }
-  //     }
-  //   },
-  //   corporate: {
-  //     name: 'Corporate Template',
-  //     description: 'Standard policies for corporate organizations',
-  //     settings: {
-  //       attendance: {
-  //         monthlyPermissionLimit: 2,
-  //         permissionHourLimit: 120,
-  //         lateLoginPenaltyThreshold: 240,
-  //         permissionGrantDuration: 2,
-  //         warningLimit: 3,
-  //         overtimeLimit: 12
-  //       },
-  //       leave: {
-  //         teamLeaveLimit: 2,
-  //         teamWfhLimit: 2,
-  //         autoRejectTime: '23:59',
-  //         annualLeaveDefault: 14
-  //       },
-  //       payroll: {
-  //         generationDay: 25,
-  //         workingHoursPerDay: 8
-  //       },
-  //       notifications: {
-  //         reminderFrequency: 'daily',
-  //         autoProcessingEnabled: true
-  //       }
-  //     }
-  //   },
-  //   enterprise: {
-  //     name: 'Enterprise Template',
-  //     description: 'Strict policies for large enterprises',
-  //     settings: {
-  //       attendance: {
-  //         monthlyPermissionLimit: 1,
-  //         permissionHourLimit: 60,
-  //         lateLoginPenaltyThreshold: 180,
-  //         permissionGrantDuration: 1,
-  //         warningLimit: 2,
-  //         overtimeLimit: 10
-  //       },
-  //       leave: {
-  //         teamLeaveLimit: 1,
-  //         teamWfhLimit: 1,
-  //         autoRejectTime: '18:00',
-  //         annualLeaveDefault: 12
-  //       },
-  //       payroll: {
-  //         generationDay: 30,
-  //         workingHoursPerDay: 9
-  //       },
-  //       notifications: {
-  //         reminderFrequency: 'weekly',
-  //         autoProcessingEnabled: false
-  //       }
-  //     }
-  //   }
-  // };
-  // console.log("settingsObj", policySettings)
-  // Fetch current policy settings
-  

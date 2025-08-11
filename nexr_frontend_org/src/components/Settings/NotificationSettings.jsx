@@ -12,7 +12,8 @@ import {
   Refresh as RefreshIcon,
   Save as SaveIcon,
   ToggleOn as ToggleOnIcon,
-  ToggleOff as ToggleOffIcon
+  ToggleOff as ToggleOffIcon,
+  SwitchAccessShortcutAdd
 } from '@mui/icons-material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -282,15 +283,15 @@ const NotificationSettings = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+    <Box>
+      <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap={"wrap"} mb={3}>
         <Box display="flex" alignItems="center" gap={2}>
           <NotificationsIcon sx={{ fontSize: 32 }} />
-          <Typography variant="h4" fontWeight="bold">
+          <Typography variant="h5" fontWeight="bold">
             Notification Settings
           </Typography>
         </Box>
-        <Box display="flex" gap={1}>
+        <Box display="flex" flexWrap={"wrap"} gap={1}>
           <Button
             variant="outlined"
             startIcon={<RefreshIcon />}
@@ -364,7 +365,7 @@ const NotificationSettings = () => {
             >
               <Box display="flex" alignItems="center" gap={2} width="100%">
                 {/* <Box sx={{ fontSize: 24 }}>{config.icon}</Box> */}
-                <Box flex={1}>
+                <Box flex={1} flexWrap={"wrap"}>
                   <Typography variant="h6" fontWeight="bold">
                     {config.title}
                   </Typography>
@@ -403,7 +404,6 @@ const NotificationSettings = () => {
                         <FormControlLabel
                           control={
                             <Switch
-                              // size='small'
                               checked={value}
                               onChange={(e) => handleNotificationToggle(module, key, e.target.checked)}
                               disabled={saving}
@@ -430,104 +430,6 @@ const NotificationSettings = () => {
         );
       })}
 
-      {/* Global Settings */}
-      {/* {settings?.globalSettings && (
-        <Card sx={{ mt: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom display="flex" alignItems="center" gap={1}>
-              <SettingsIcon /> Global Notification Settings
-            </Typography>
-            <Divider sx={{ my: 2 }} />
-            
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6} md={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={settings.globalSettings.emailNotifications}
-                      onChange={(e) => handleNotificationToggle('globalSettings', 'emailNotifications', e.target.checked)}
-                      disabled={saving}
-                    />
-                  }
-                  label="Email Notifications"
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={settings.globalSettings.pushNotifications}
-                      onChange={(e) => handleNotificationToggle('globalSettings', 'pushNotifications', e.target.checked)}
-                      disabled={saving}
-                    />
-                  }
-                  label="Push Notifications"
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={settings.globalSettings.smsNotifications}
-                      onChange={(e) => handleNotificationToggle('globalSettings', 'smsNotifications', e.target.checked)}
-                      disabled={saving}
-                    />
-                  }
-                  label="SMS Notifications"
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={settings.globalSettings.browserNotifications}
-                      onChange={(e) => handleNotificationToggle('globalSettings', 'browserNotifications', e.target.checked)}
-                      disabled={saving}
-                    />
-                  }
-                  label="Browser Notifications"
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Notification Frequency</InputLabel>
-                  <Select
-                    value={settings.globalSettings.notificationFrequency}
-                    label="Notification Frequency"
-                    onChange={(e) => handleNotificationToggle('globalSettings', 'notificationFrequency', e.target.value)}
-                    disabled={saving}
-                  >
-                    <MenuItem value="immediate">Immediate</MenuItem>
-                    <MenuItem value="hourly">Hourly</MenuItem>
-                    <MenuItem value="daily">Daily</MenuItem>
-                    <MenuItem value="weekly">Weekly</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={settings.globalSettings.quietHours.enabled}
-                      onChange={(e) => handleNotificationToggle('globalSettings', 'quietHours', { 
-                        ...settings.globalSettings.quietHours, 
-                        enabled: e.target.checked 
-                      })}
-                      disabled={saving}
-                    />
-                  }
-                  label="Enable Quiet Hours"
-                />
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      )} */}
 
       {saving && (
         <Box position="fixed" bottom={20} right={20}>

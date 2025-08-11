@@ -154,12 +154,11 @@ const Attendence = () => {
                 { key: "totalLateLogins", label: "Late", height: lateHeight },
                 { key: "totalLeaveDays", label: "Leave", height: clockInsData.totalLeaveDays * 10 },
               ].map(({ key, label, height }) => {
-                console.log(key, height, label);
                 return (<div
                   key={key}
-                  className={`col-lg-3 col-3 ${label.toLowerCase()}`}
+                  className={`col-lg-3 col-md-3 col-12 ${label.toLowerCase()}`}
                   style={{ height: `${height}%`, zIndex: Math.ceil(height) }}>
-                  <div className={`${screen.width < 720 ? "d-block" : "d-flex"}  justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""}`}>
+                  <div className={`${screen.width < 720 ? "d-block" : "d-flex"}  justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""} flex-wrap`}>
                     <p className="payslipTitle" style={{ color: "#146ADC" }}>
                       {clockInsData[key]?.toFixed(1)} Days
                     </p>

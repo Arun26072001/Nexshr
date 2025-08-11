@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import NoDataFound from './NoDataFound';
 import dayjs from "dayjs";
-import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import { getHoliday } from '../ReuseableAPI';
 import Loading from '../Loader';

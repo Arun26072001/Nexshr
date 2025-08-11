@@ -7,7 +7,6 @@ import weekends from "react-multi-date-picker/plugins/highlight_weekends";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import { Button, Input, InputNumber, Modal, SelectPicker, Tabs } from "rsuite";
 import dayjs from "dayjs";
-import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar.css";
 import CircleIcon from '@mui/icons-material/Circle';
 import { getHoliday, getNextUpcomingHoliday } from "./ReuseableAPI";

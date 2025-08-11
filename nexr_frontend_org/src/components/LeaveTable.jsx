@@ -1139,7 +1139,7 @@ export default function LeaveTable({ data, Account, handleLateLogin, getCheckedV
     }, [data]);
 
     return (
-        <div className="container-fluid my-3">
+        <div className="my-3">
             <Paper sx={{ width: '100%', overflow: 'hidden' }}>
                 <TableContainer sx={{ maxHeight: 440 }}>
                     <Table stickyHeader aria-label="sticky table">

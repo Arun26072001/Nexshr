@@ -11,6 +11,7 @@ import axios from "axios";
 import employeesData from "../../files/Employees data.xlsx";
 import { jwtDecode } from 'jwt-decode';
 import { Skeleton } from '@mui/material';
+import { Input } from 'rsuite';
 
 export default function Employee() {
     const url = process.env.REACT_APP_API_URL;
@@ -157,46 +158,48 @@ export default function Employee() {
             )}
 
             {/* head */}
-            <div className='d-flex justify-content-between px-2'>
+            <div className='d-flex justify-content-between px-2 flex-wrap'>
                 <p className="payslipTitle">
                     All Employee
                 </p>
-
-                <div className='d-flex' style={{ gap: "10px" }}>
-                    {
-                        ["admin", "hr"].includes(whoIs) &&
-                        <>
-                            <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
-                                <AddRoundedIcon /> Add Employee
-                            </button>
-                            <button className="button" style={{ cursor: `${processing ? "wait" : "pointer"}` }} onClick={() => document.getElementById("fileUploader").click()} >
-                                <AddRoundedIcon />Import
-                            </button>
-                        </>
-                    }
-                    <input
-                        type="file"
-                        id="fileUploader"
-                        style={{ display: 'none' }}
-                        onChange={(e) => handleUpload(e.target.files[0])}
-                    />
-                </div>
+                {
+                    ["admin", "hr"].includes(whoIs) &&
+                    <p className='text-end px-2 my-2'>
+                        <a href={employeesData} download={employeesData}>
+                                EmployeeData.xlsx
+                        </a>
+                    </p>
+                }
             </div>
-            {
-                ["admin", "hr"].includes(whoIs) &&
-                <p className='text-end px-2 my-2'>
-                    <a href={employeesData} download={employeesData}>
-                        Download Employee data model file
-                    </a>
-                </p>
-            }
             <div className='employee d-block'>
                 {/* content */}
-                <div className='px-3'>
-                    <div className="row">
-                        <div className="col-lg-12 searchInputIcon">
-                            <input type="text" className='payrunInput' onChange={(e) => setEmpName(e.target.value?.trimStart()?.replace(/\s+/g, ' '))} placeholder='Search by EmpName' />
-                        </div>
+                <div className="row px-1">
+                    <div className="col-lg-6 col-12 col-md-6">
+                        <Input
+                            size='lg'
+                            style={{ width: "100%" }}
+                            placeholder="Search by EmpName"
+                            onChange={(value) => setEmpName(value?.trimStart()?.replace(/\s+/g, ' '))}
+                        />
+                    </div>
+                    <div className='col-lg-6 col-12 col-md-6 d-flex flex-wrap justify-content-end' style={{ gap: "10px" }}>
+                        {
+                            ["admin", "hr"].includes(whoIs) &&
+                            <>
+                                <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
+                                    <AddRoundedIcon /> Add Employee
+                                </button>
+                                <button className="button" style={{ cursor: `${processing ? "wait" : "pointer"}` }} onClick={() => document.getElementById("fileUploader").click()} >
+                                    <AddRoundedIcon />Import
+                                </button>
+                            </>
+                        }
+                        <input
+                            type="file"
+                            id="fileUploader"
+                            style={{ display: 'none' }}
+                            onChange={(e) => handleUpload(e.target.files[0])}
+                        />
                     </div>
                 </div>
 

@@ -190,24 +190,23 @@ export default function EmailTemplates() {
             isChangeTemp.isEdit ? <CommonModel isAddData={isChangeTemp.isEdit} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} errorMsg={errorMsg} modifyData={handleChangeTemp} editData={updateTemplate} /> :
                 isLoading ? <Loading height='80vh' /> :
                     <div className='dashboard-parent py-4'>
-                        <div className="d-flex justify-content-between px-2">
-                            <p className="payslipTitle col-6">
+                        <div className="d-flex justify-content-between px-2 flex-wrap">
+                            <p className="payslipTitle col-12 col-lg-6 col-md-6">
                                 Email Template
                             </p>
-                            <div className="col-6 d-flex justify-content-end">
+                            <div className="col-12 col-lg-6 col-md-6 d-flex justify-content-end">
                                 <button className="button mx-1" onClick={() => handleChangeTemp("Add")} >
                                     Add Template
                                 </button>
                             </div>
                         </div>
                         <div className='leaveContainer d-block'>
-                            <div className='px-3 my-3'>
-                                <div className="row">
-                                    <div className="col-lg-12 col-12 d-flex justify-content-end">
-                                        <Input value={title} size="lg" style={{ width: "250px" }} placeholder="Search by Template Title" onChange={setTitle} />
-                                    </div>
+                            <div className='d-flex justify-content-end'>
+                                <div className="col-lg-5 col-md-5 col-12 d-flex justify-content-end">
+                                    <Input value={title} size="lg" placeholder="Search by Template Title" onChange={setTitle} />
                                 </div>
                             </div>
+                            
                             <div className='profiles mt-3'>
                                 {
                                     isLoading ? <Skeleton

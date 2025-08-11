@@ -295,11 +295,11 @@ export default function LeaveRecords() {
                 style={{ display: 'none' }}
                 onChange={(e) => handleUpload(e.target.files[0])}
             />
-            <div className='d-flex justify-content-between px-2'>
-                <p className="payslipTitle">
+            <div className='d-flex justify-content-between px-2 flex-wrap'>
+                <p className="payslipTitle col-col-lg-6 col-12 col-md-6">
                     Leave Records
                 </p>
-                <div className='d-flex gap-2'>
+                <div className='d-flex gap-2 col-lg-6 col-12 col-md-6 flex-wrap justify-content-end'>
                     <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
                     <button className='button' style={{ cursor: 'pointer' }}>
                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu} >
@@ -310,19 +310,24 @@ export default function LeaveRecords() {
             </div>
 
             <div className="leaveContainer d-block">
-                <div className='px-3 my-3'>
-                    <div className="d-flex align-items-center justify-content-between my-2">
-                        <Input value={empName} size="lg" style={{ width: "300px" }} placeholder="Search Employee" onChange={(e) => setEmpName(e)} />
-                        <DateRangePicker
-                            size="lg"
-                            showOneCalendar
-                            placement="bottomEnd"
-                            value={dateRangeValue}
-                            placeholder="Filter Range of Date"
-                            onChange={setDateRangeValue}
-                        />
+                    <div className="d-flex align-items-center justify-content-between my-2 flex-wrap">
+                        <div className="col-12 col-lg-5 col-md-5 my-1">
+                            <Input value={empName} size="lg" style={{ width: "100%" }} placeholder="Search Employee" onChange={(e) => setEmpName(e)} />
+                        </div>
+                    <div className="col-12 col-lg-5 col-md-5 my-1">
+                            <DateRangePicker
+                                size="lg"
+                                showOneCalendar
+                                style={{ width: "100%" }}
+                                placement="bottomEnd"
+                                value={dateRangeValue}
+                                placeholder="Filter Range of Date"
+                                onChange={setDateRangeValue}
+                            />
+                        </div>
                     </div>
-                </div>
+                {/* <div className='px-3 my-3'>
+                </div> */}
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
                         <div

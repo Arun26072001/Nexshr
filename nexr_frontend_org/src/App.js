@@ -10,6 +10,7 @@ import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-quill/dist/quill.snow.css";
 import "react-datepicker/dist/react-datepicker.css";
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebase/firebase.js";
