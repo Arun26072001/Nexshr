@@ -1240,7 +1240,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
             "application",
             {
               to: member.Email,
-              subject: "Leave Application Notification",
+              subject: `${emp.FirstName} ${emp.LastName} has been applied Leave for `,
               html: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
               from: `<${emp.Email}> (Nexshr)`
             }
@@ -1258,7 +1258,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
               {
                 tokens: member.fcmToken,
                 title: notification.title,
-                body: notification.message
+                body: notification.message,
+                path
               }
             );
           }
