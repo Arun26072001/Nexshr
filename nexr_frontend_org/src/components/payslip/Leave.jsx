@@ -86,25 +86,24 @@ const Leave = () => {
     return (
         <div >
             {/* top date input and leave label */}
-            <div className="leaveDateParent row px-2 justify-content-between align-items-center">
+            <div className="leaveDateParent d-flex justify-content-between align-items-center flex-wrap">
                 <p className="payslipTitle">
                     Leave
                 </p>
-                <button className="button mx-1" onClick={() => navigate(`/${whoIs}/leave-request`)}>
+                <button className="button" onClick={() => navigate(`/${whoIs}/leave-request`)}>
                     Add Leave
                 </button>
             </div>
 
             <div className="leaveContainer d-block">
-                    <div className="d-flex flex-wrap my-3">
-                        <div className="col-lg-6 col-12 col-md-12 d-flex flex-wrap mb-1">
-                            <Input value={empName} size="lg" style={{ width: "100%" }} placeholder="Search by Leave type" onChange={(e) => setEmpName(e)} />
-                        </div>
-                        <div className="col-lg-6 col-12 col-md-12 d-flex flex-wrap mb-1">
-                            <DateRangePicker size="lg" style={{width: "70%"}} className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
-                            
-                        </div>
+                <div className="d-flex flex-wrap my-3 justify-content-between">
+                    <div className="col-lg-5 col-12 col-md-5 d-flex mb-1">
+                        <Input value={empName} size="lg" style={{ width: "100%" }} placeholder="Search by Leave type" onChange={(e) => setEmpName(e)} />
                     </div>
+                    <div className="col-lg-5 col-12 col-md-5 d-flex mb-1 justify-content-end">
+                        <DateRangePicker size="lg" style={{ width: "100%" }} className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
+                    </div>
+                </div>
 
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
